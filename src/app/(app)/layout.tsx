@@ -26,6 +26,11 @@ import {
   Search,
   Target,
   MessageSquare,
+  ClipboardList,
+  AlertTriangle,
+  Upload,
+  GitBranch,
+  Mail,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 
@@ -51,18 +56,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const agencyNavItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/app/klijenti', icon: Building2, label: 'Klijenti' },
+    { href: '/app/evidencije', icon: ClipboardList, label: 'Evidencije' },
+    { href: '/app/povrede', icon: AlertTriangle, label: 'Povrede' },
+    { href: '/app/tok-dokumenta', icon: GitBranch, label: 'Tok dokumenta' },
     { href: '/app/pronalazenje-klijenata', icon: Target, label: 'Pronalazenje klijenata' },
     { href: '/app/poruke', icon: MessageSquare, label: 'Poruke' },
     { href: '/app/pozicije', icon: Briefcase, label: 'Radna mesta' },
     { href: '/app/dokumenti', icon: FileText, label: 'Dokumenti' },
     { href: '/app/ai-savetnik', icon: Bot, label: 'AI Savetnik' },
     { href: '/app/agenti', icon: Users, label: 'Agenti' },
+    { href: '/app/newsletter', icon: Mail, label: 'Newsletter' },
     { href: '/app/podesavanja', icon: Settings, label: 'Podesavanja' },
   ];
 
   // Company navigation items
   const companyNavItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { href: '/app/evidencije', icon: ClipboardList, label: 'Evidencije' },
+    { href: '/app/dokumenti-firme', icon: Upload, label: 'Dokumenti firme' },
     { href: '/app/dokumenti', icon: FileText, label: 'Dokumenti' },
     { href: '/app/ai-savetnik', icon: Bot, label: 'AI Savetnik' },
     { href: '/app/pronadji-agenciju', icon: Search, label: 'Pronadji agenciju' },

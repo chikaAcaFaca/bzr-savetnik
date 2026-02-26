@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Building2, Users, FileText, AlertTriangle, Search, CreditCard, Shield } from 'lucide-react';
+import { Building2, Users, FileText, AlertTriangle, Search, CreditCard, Shield, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
+import ObligationsWidget from '@/components/obligations-widget';
 
 function AgencyDashboard() {
   return (
@@ -33,11 +34,16 @@ function AgencyDashboard() {
       {/* Quick Actions */}
       <div className="rounded-lg border bg-card p-6">
         <h2 className="text-lg font-semibold mb-4">Brze akcije</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-4">
           <Link href="/app/klijenti/novi" className="rounded-lg border p-4 text-left hover:bg-muted transition-colors block">
             <Building2 className="h-5 w-5 text-primary mb-2" />
             <p className="font-medium text-sm">Dodaj klijenta</p>
             <p className="text-xs text-muted-foreground">Registrujte novu firmu</p>
+          </Link>
+          <Link href="/app/evidencije" className="rounded-lg border p-4 text-left hover:bg-muted transition-colors block">
+            <ClipboardList className="h-5 w-5 text-primary mb-2" />
+            <p className="font-medium text-sm">Evidencije</p>
+            <p className="text-xs text-muted-foreground">Obrasci 1-11</p>
           </Link>
           <button className="rounded-lg border p-4 text-left hover:bg-muted transition-colors">
             <FileText className="h-5 w-5 text-primary mb-2" />
@@ -51,6 +57,9 @@ function AgencyDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Legal Obligations Widget */}
+      <ObligationsWidget />
 
       {/* Recent Activity */}
       <div className="rounded-lg border bg-card p-6">
@@ -116,12 +125,17 @@ function CompanyDashboard() {
       {/* Quick Actions */}
       <div className="rounded-lg border bg-card p-6">
         <h2 className="text-lg font-semibold mb-4">Brze akcije</h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <button className="rounded-lg border p-4 text-left hover:bg-muted transition-colors">
+        <div className="grid gap-3 sm:grid-cols-4">
+          <Link href="/app/dokumenti-firme" className="rounded-lg border p-4 text-left hover:bg-muted transition-colors block">
             <FileText className="h-5 w-5 text-primary mb-2" />
-            <p className="font-medium text-sm">Generisi dokument</p>
-            <p className="text-xs text-muted-foreground">Akt o proceni rizika</p>
-          </button>
+            <p className="font-medium text-sm">Otpremi dokument</p>
+            <p className="text-xs text-muted-foreground">Ugovori, doznake, odluke</p>
+          </Link>
+          <Link href="/app/evidencije" className="rounded-lg border p-4 text-left hover:bg-muted transition-colors block">
+            <ClipboardList className="h-5 w-5 text-primary mb-2" />
+            <p className="font-medium text-sm">Evidencije</p>
+            <p className="text-xs text-muted-foreground">Obrasci 1-11</p>
+          </Link>
           <Link href="/app/pronadji-agenciju" className="rounded-lg border p-4 text-left hover:bg-muted transition-colors block">
             <Search className="h-5 w-5 text-primary mb-2" />
             <p className="font-medium text-sm">Pronadji agenciju</p>
@@ -134,6 +148,9 @@ function CompanyDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Legal Obligations Widget */}
+      <ObligationsWidget />
 
       {/* Recent Activity */}
       <div className="rounded-lg border bg-card p-6">
