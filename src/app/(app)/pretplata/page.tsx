@@ -1,15 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CreditCard, CheckCircle, AlertTriangle, Clock, Copy, Check } from 'lucide-react';
-import { generateIpsQrString, getPaymentAccount, getPaymentRecipient } from '@/lib/ips-qr';
+import { CreditCard, CheckCircle, AlertTriangle, Clock, Copy, Check, Download, FileText, Loader2 } from 'lucide-react';
+import { generateIpsQrString } from '@/lib/ips-qr';
+import { trpc } from '@/lib/trpc';
 import QRCode from 'qrcode';
 
 /**
  * Pretplata (Subscription) Page
  *
  * Shows IPS QR code for payment, current subscription status,
- * and manual payment details for companies.
+ * invoice list, and manual payment details for companies.
  */
 
 // Pricing tiers matching backend PRICING_TIERS
@@ -39,35 +40,29 @@ export default function PretplataPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
-  // TODO: Replace with real data from trpc query (companies.getPaymentInfo)
-  // For now, use placeholder data
-  const paymentInfo = {
-    companyId: 1,
-    companyName: 'Moja Firma d.o.o.',
-    pricingTier: 'tier_5' as string,
-    tierLabel: 'Do 5 zaposlenih',
-    monthlyPrice: 1990,
-    annualPrice: 19900,
-    pozivNaBroj: '1-022026',
-    status: 'trial' as 'trial' | 'active' | 'expired',
-    trialExpiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    subscriptionPaidUntil: null as string | null,
-    lastPaymentAt: null as string | null,
-  };
+  // Fetch payment info from backend
+  const { data: paymentInfo, isLoading, error } = (trpc as any).billing.paymentInfo.useQuery();
 
-  const tier = PRICING_TIERS[paymentInfo.pricingTier];
-  const amount = billingCycle === 'monthly' ? (tier?.monthlyRsd ?? 0) : (tier?.annualRsd ?? 0);
-  const racunPrimaoca = getPaymentAccount();
-  const nazivPrimaoca = getPaymentRecipient();
+  // Fetch invoices
+  const { data: invoicesList } = (trpc as any).billing.listInvoices.useQuery();
 
-  const ipsQrString = generateIpsQrString({
+  // Download PDF mutation
+  const downloadPdfMutation = (trpc as any).billing.downloadPdf.useMutation();
+
+  const tier = paymentInfo?.pricingTier ? PRICING_TIERS[paymentInfo.pricingTier] : null;
+  const amount = billingCycle === 'monthly' ? (tier?.monthlyRsd ?? paymentInfo?.monthlyPrice ?? 0) : (tier?.annualRsd ?? paymentInfo?.annualPrice ?? 0);
+  const racunPrimaoca = paymentInfo?.racunPrimaoca || '';
+  const nazivPrimaoca = paymentInfo?.nazivPrimaoca || '';
+
+  const ipsQrString = paymentInfo ? generateIpsQrString({
     racunPrimaoca,
     nazivPrimaoca,
     iznos: amount,
     pozivNaBroj: paymentInfo.pozivNaBroj,
     svrhaPlacanja: `BZR Savetnik pretplata - ${billingCycle === 'monthly' ? 'mesecna' : 'godisnja'}`,
-  });
+  }) : '';
 
   useEffect(() => {
     if (canvasRef.current && ipsQrString) {
@@ -85,6 +80,30 @@ export default function PretplataPage() {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const handleDownloadPdf = async (invoiceId: number) => {
+    setDownloadingId(invoiceId);
+    try {
+      const result = await downloadPdfMutation.mutateAsync({ invoiceId });
+      // Convert base64 to blob and download
+      const byteChars = atob(result.pdf);
+      const byteArray = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteArray[i] = byteChars.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = result.filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF download failed:', err);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const CopyButton = ({ text, field }: { text: string; field: string }) => (
     <button
       onClick={() => handleCopy(text, field)}
@@ -98,6 +117,28 @@ export default function PretplataPage() {
       )}
     </button>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (error || !paymentInfo) {
+    return (
+      <div className="space-y-6 max-w-4xl">
+        <div>
+          <h1 className="text-3xl font-bold">Pretplata</h1>
+          <p className="text-muted-foreground mt-1">Upravljajte vasim planom i placanjem</p>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-red-800">Greska pri ucitavanju podataka o pretplati. Pokusajte ponovo.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -157,11 +198,11 @@ export default function PretplataPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Mesecna cena</span>
-              <span className="font-medium">{formatRsd(tier?.monthlyRsd ?? 0)} RSD</span>
+              <span className="font-medium">{formatRsd(paymentInfo.monthlyPrice)} RSD</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Godisnja cena</span>
-              <span className="font-medium">{formatRsd(tier?.annualRsd ?? 0)} RSD</span>
+              <span className="font-medium">{formatRsd(paymentInfo.annualPrice)} RSD</span>
             </div>
             <div className="pt-3 border-t">
               <p className="text-xs text-muted-foreground">
@@ -281,6 +322,71 @@ export default function PretplataPage() {
           nakon sto potvrdimo uplatu.
         </div>
       </div>
+
+      {/* Invoices Section */}
+      {invoicesList && invoicesList.length > 0 && (
+        <div className="rounded-lg border bg-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Vase fakture</h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-2 font-medium text-muted-foreground">Broj</th>
+                  <th className="text-left py-2 px-2 font-medium text-muted-foreground">Datum</th>
+                  <th className="text-left py-2 px-2 font-medium text-muted-foreground">Opis</th>
+                  <th className="text-right py-2 px-2 font-medium text-muted-foreground">Iznos</th>
+                  <th className="text-center py-2 px-2 font-medium text-muted-foreground">Status</th>
+                  <th className="text-center py-2 px-2 font-medium text-muted-foreground">PDF</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoicesList.map((inv: any) => (
+                  <tr key={inv.id} className="border-b last:border-0">
+                    <td className="py-2 px-2 font-mono text-xs">{inv.invoiceNumber}</td>
+                    <td className="py-2 px-2">{formatDate(inv.createdAt)}</td>
+                    <td className="py-2 px-2">{inv.description}</td>
+                    <td className="py-2 px-2 text-right font-medium">{formatRsd(inv.amount)} RSD</td>
+                    <td className="py-2 px-2 text-center">
+                      {inv.status === 'paid' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <CheckCircle className="h-3 w-3" /> Placeno
+                        </span>
+                      ) : inv.status === 'cancelled' ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          Otkazano
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <Clock className="h-3 w-3" /> Ceka uplatu
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 px-2 text-center">
+                      <button
+                        onClick={() => handleDownloadPdf(inv.id)}
+                        disabled={downloadingId === inv.id}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium hover:bg-muted transition-colors disabled:opacity-50"
+                        title="Preuzmi PDF"
+                      >
+                        {downloadingId === inv.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5" />
+                        )}
+                        PDF
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

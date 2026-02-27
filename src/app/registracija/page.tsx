@@ -20,6 +20,7 @@ export default function RegisterPage() {
   const [companyName, setCompanyName] = useState('');
   const [companyPib, setCompanyPib] = useState('');
   const [employeeCount, setEmployeeCount] = useState('');
+  const [tekuciRacun, setTekuciRacun] = useState('');
   // Agency fields
   const [agencyName, setAgencyName] = useState('');
   const [agencyPib, setAgencyPib] = useState('');
@@ -81,6 +82,7 @@ export default function RegisterPage() {
             employeeCount: parseInt(employeeCount) || 1,
             email: userEmail,
             fullName,
+            tekuciRacun: tekuciRacun || undefined,
           },
         }),
       }
@@ -356,6 +358,18 @@ export default function RegisterPage() {
                   min={1}
                   className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Tekuci racun firme</label>
+                <input
+                  type="text"
+                  value={tekuciRacun}
+                  onChange={(e) => setTekuciRacun(e.target.value)}
+                  placeholder="265-XXXXXXXXXXXXX-XX"
+                  pattern="\d{3}-\d{13}-\d{2}"
+                  className="w-full rounded-md border px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Format: XXX-XXXXXXXXXXXXX-XX (opciono, potrebno za uplatnice)</p>
               </div>
               <div className="flex gap-3">
                 <button
