@@ -27,14 +27,14 @@ export default function HomePage() {
               <Link href="/funkcionalnosti" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Funkcionalnosti
               </Link>
+              <Link href="/firma" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Baza firmi
+              </Link>
               <Link href="/cene" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Cene
               </Link>
               <Link href="/propisi" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Propisi
-              </Link>
-              <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Blog
               </Link>
               <Link href="/kontakt" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Kontakt
@@ -97,7 +97,11 @@ export default function HomePage() {
       {/* Stats */}
       <section className="border-y bg-muted/50 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center">
+            <div>
+              <div className="text-3xl font-bold text-primary">136.000+</div>
+              <div className="text-sm text-muted-foreground mt-1">Firmi u nasoj bazi</div>
+            </div>
             <div>
               <div className="text-3xl font-bold text-primary">750.000</div>
               <div className="text-sm text-muted-foreground mt-1">Firmi u Srbiji</div>
@@ -107,12 +111,12 @@ export default function HomePage() {
               <div className="text-sm text-muted-foreground mt-1">BZR agencija</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary">990 RSD</div>
-              <div className="text-sm text-muted-foreground mt-1">Od mesecno</div>
+              <div className="text-3xl font-bold text-primary">11</div>
+              <div className="text-sm text-muted-foreground mt-1">Obrazaca evidencija</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-primary">100%</div>
-              <div className="text-sm text-muted-foreground mt-1">Uskladenost sa zakonom</div>
+              <div className="text-3xl font-bold text-primary">990 RSD</div>
+              <div className="text-sm text-muted-foreground mt-1">Od mesecno</div>
             </div>
           </div>
         </div>
@@ -178,16 +182,28 @@ export default function HomePage() {
                 description: 'AI automatski generise kompletni akt na osnovu podataka o radnom mestu, opasnostima i merama zastite.',
               },
               {
-                title: 'Svi obrasci (1-6)',
-                description: 'Obrazac za osposobljavanje, evidencije o povredama, lekarski pregledi - sve u DOCX formatu.',
+                title: 'Evidencije - Obrasci 1-11',
+                description: 'Svih 11 obrazaca po novom Pravilniku (Sl. glasnik 5/2025). Digitalno vodjenje evidencija sa automatskim popunjavanjem iz Akta.',
               },
               {
-                title: 'AI savetnik',
+                title: 'Prijava povreda na radu',
+                description: 'Kompletni izvestaj o povredi sa AI kodiranjem po ESAW metodologiji. Pracenje distribucije 5 primeraka.',
+              },
+              {
+                title: 'AI savetnik - Botislav',
                 description: 'Pitajte bilo sta o BZR propisima. AI agent poznaje sve zakone, pravilnike i uredbe.',
               },
               {
                 title: 'Marketplace agencija',
                 description: 'Pronadjite licenciranu BZR agenciju u vasem gradu. Ocene i recenzije od drugih firmi.',
+              },
+              {
+                title: 'Podsetnici i rokovi',
+                description: 'Automatski podsetnici za lekarske preglede, obuke, preglede opreme i sve zakonske rokove. Email obavestenja.',
+              },
+              {
+                title: 'Baza od 136.000+ firmi',
+                description: 'Kompletni podaci o firmama iz APR registra. Svaka firma ima svoj profil sa BZR statusom.',
               },
               {
                 title: 'Automatske novosti',
@@ -301,6 +317,127 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Company Directory / APR Database */}
+      <section className="py-20" id="baza-firmi">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 px-3 py-1 text-sm font-medium mb-4">
+              Podaci iz Agencije za privredne registre (APR)
+            </div>
+            <h2 className="text-3xl font-bold">Baza od 136.000+ firmi u Srbiji</h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              Svaka firma ima svoj profil sa kontakt podacima, delatnoscu, brojem zaposlenih i BZR statusom.
+              Pronadjite bilo koju firmu po maticnom broju, nazivu ili lokaciji.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="rounded-lg border bg-card p-6 text-center">
+              <div className="text-4xl font-bold text-primary mb-2">136.000+</div>
+              <h3 className="font-semibold mb-1">Aktivnih firmi</h3>
+              <p className="text-sm text-muted-foreground">
+                Kompletni podaci preuzeti iz APR registra - naziv, PIB, maticni broj, delatnost, opstina.
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-6 text-center">
+              <div className="text-4xl font-bold text-primary mb-2">Besplatno</div>
+              <h3 className="font-semibold mb-1">Javni profili firmi</h3>
+              <p className="text-sm text-muted-foreground">
+                Svaka firma ima javni profil sa osnovnim podacima, BZR statusom i linkom do registracije.
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-6 text-center">
+              <div className="text-4xl font-bold text-primary mb-2">SEO</div>
+              <h3 className="font-semibold mb-1">Optimizovano za pretrazivace</h3>
+              <p className="text-sm text-muted-foreground">
+                136.000+ stranica indeksiranih na Google-u. Potencijalni klijenti nalaze vas profil pretragom.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-muted/50 p-8">
+            <h3 className="text-xl font-semibold mb-4 text-center">Pregled po delatnostima</h3>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {[
+                { name: 'Gradjevinarstvo', code: '41-43', link: '/firma?delatnost=41' },
+                { name: 'Proizvodnja', code: '10-33', link: '/firma?delatnost=10' },
+                { name: 'Trgovina', code: '45-47', link: '/firma?delatnost=45' },
+                { name: 'Transport i skladistenje', code: '49-53', link: '/firma?delatnost=49' },
+                { name: 'Ugostiteljstvo', code: '55-56', link: '/firma?delatnost=55' },
+                { name: 'Zdravstvo', code: '86-88', link: '/firma?delatnost=86' },
+                { name: 'Obrazovanje', code: '85', link: '/firma?delatnost=85' },
+                { name: 'IT i telekomunikacije', code: '61-63', link: '/firma?delatnost=61' },
+              ].map((sector) => (
+                <Link
+                  key={sector.code}
+                  href={sector.link}
+                  className="flex items-center justify-between rounded-md border bg-card px-4 py-3 text-sm hover:shadow-md hover:border-primary transition-all"
+                >
+                  <span className="font-medium">{sector.name}</span>
+                  <span className="text-xs text-muted-foreground">{sector.code}</span>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-6">
+              <Link
+                href="/firma"
+                className="inline-flex items-center justify-center rounded-md border-2 border-primary px-6 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+              >
+                Pretrazite sve firme &rarr;
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Agencije koriste bazu firmi za pronalazenje novih klijenata.
+              Firme se registruju i dobijaju kompletnu BZR dokumentaciju.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Evidence Forms (Obrazac 1-11) */}
+      <section className="py-20 bg-muted/30" id="evidencije">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center rounded-full bg-orange-100 text-orange-800 px-3 py-1 text-sm font-medium mb-4">
+              Novi Pravilnik (Sl. glasnik RS, br. 5/2025) - obavezan od 1. jula 2026.
+            </div>
+            <h2 className="text-3xl font-bold">Digitalne evidencije - Obrazac 1 do 11</h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+              Svih 11 obrazaca po novom Pravilniku o nacinu vodjenja evidencija u oblasti BZR.
+              Automatsko popunjavanje iz Akta o proceni rizika.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { num: 1, name: 'Radna mesta sa povecenim rizikom', icon: '&#9888;' },
+              { num: 2, name: 'Zaposleni na rizicnim mestima', icon: '&#128100;' },
+              { num: 3, name: 'Povrede na radu', icon: '&#127973;' },
+              { num: 4, name: 'Profesionalna oboljenja', icon: '&#129657;' },
+              { num: 5, name: 'Izlozenost stetnostima', icon: '&#9762;' },
+              { num: 6, name: 'Osposobljavanje zaposlenih (papirni)', icon: '&#128196;' },
+              { num: 7, name: 'Opasne materije', icon: '&#9763;' },
+              { num: 8, name: 'Pregledi opreme za rad', icon: '&#128736;' },
+              { num: 9, name: 'Elektricne instalacije', icon: '&#9889;' },
+              { num: 10, name: 'Uslovi radne okoline', icon: '&#127981;' },
+              { num: 11, name: 'Licna zastitna sredstva (LZS)', icon: '&#129509;' },
+            ].map((obrazac) => (
+              <div key={obrazac.num} className="flex items-center gap-3 rounded-lg border bg-card p-4 hover:shadow-md transition-shadow">
+                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
+                  {obrazac.num}
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Obrazac {obrazac.num}</h4>
+                  <p className="text-xs text-muted-foreground">{obrazac.name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -344,6 +481,7 @@ export default function HomePage() {
               <h4 className="font-semibold mb-3 text-sm">Platforma</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/funkcionalnosti" className="hover:text-foreground">Funkcionalnosti</Link></li>
+                <li><Link href="/firma" className="hover:text-foreground">Baza firmi (136.000+)</Link></li>
                 <li><Link href="/cene" className="hover:text-foreground">Cene</Link></li>
                 <li><Link href="/blog" className="hover:text-foreground">Blog</Link></li>
               </ul>

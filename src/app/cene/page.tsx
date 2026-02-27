@@ -103,17 +103,19 @@ export default function PricingPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             {[
               'Akt o proceni rizika (DOCX)',
-              'Svi obrasci 1-6',
-              'AI savetnik za BZR pitanja',
+              'Svi obrasci 1-11 (novi Pravilnik 2025)',
+              'Evidencije po novom zakonu',
+              'AI savetnik Botislav za BZR pitanja',
+              'Prijava povreda sa ESAW kodiranjem',
+              'Podsetnici za zakonske rokove',
               'Kinney ExPxF kalkulacija',
               'Automatsko pracenje propisa',
-              'Email obavestenja o promenama',
-              'Evidencija radnih mesta',
-              'Evidencija zaposlenih',
-              'Generisanje pravilnika',
-              'Dnevni backup podataka',
+              'Email obavestenja o promenama i rokovima',
+              'Profil firme u bazi od 136.000+ firmi',
+              'Marketplace BZR agencija',
               'DOCX export svih dokumenata',
               'Pristup bazi od 43+ pravilnika',
+              'Dnevni backup podataka',
             ].map((feature, i) => (
               <div key={i} className="flex items-center gap-2 text-sm">
                 <span className="text-green-600">&#10003;</span>
