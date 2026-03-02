@@ -1,16 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Building2, Shield } from 'lucide-react';
 import { refreshCachedToken } from '@/lib/trpc';
 
 type UserTypeChoice = null | 'company' | 'agency';
 type Step = 'choose' | 'account' | 'details';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+interface InviteCompanyData {
+  poslovnoIme: string;
+  maticniBroj: string;
+  brojZaposlenih: number | null;
+  opstina: string | null;
+}
+
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-muted/30">
+        <div className="text-center">
+          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center mx-auto">
+            <span className="text-primary-foreground font-bold">BZR</span>
+          </div>
+          <p className="text-muted-foreground mt-4">Ucitavanje...</p>
+        </div>
+      </div>
+    }>
+      <RegisterPageInner />
+    </Suspense>
+  );
+}
+
+function RegisterPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userTypeChoice, setUserTypeChoice] = useState<UserTypeChoice>(null);
   const [step, setStep] = useState<Step>('choose');
   const [email, setEmail] = useState('');
@@ -27,6 +54,47 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  // Invite pre-population
+  const [inviteData, setInviteData] = useState<InviteCompanyData | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+
+  // Check for invite link params: ?ref=firma&mb={maticniBroj}
+  const refParam = searchParams.get('ref');
+  const mbParam = searchParams.get('mb');
+
+  useEffect(() => {
+    if (refParam === 'firma' && mbParam) {
+      setInviteLoading(true);
+      // Auto-select company type and skip to account step
+      setUserTypeChoice('company');
+      setStep('account');
+
+      // Fetch company data from directory
+      fetch(
+        `${API_URL}/trpc/companyDirectory.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ maticniBroj: mbParam }))}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          const company = data?.result?.data;
+          if (company) {
+            setInviteData({
+              poslovnoIme: company.poslovnoIme,
+              maticniBroj: company.maticniBroj,
+              brojZaposlenih: company.brojZaposlenih,
+              opstina: company.opstina,
+            });
+            setCompanyName(company.poslovnoIme);
+            if (company.brojZaposlenih) {
+              setEmployeeCount(company.brojZaposlenih.toString());
+            }
+          }
+        })
+        .catch(() => {
+          // Ignore fetch errors, user can still register manually
+        })
+        .finally(() => setInviteLoading(false));
+    }
+  }, [refParam, mbParam]);
 
   const handleChooseType = (type: UserTypeChoice) => {
     setUserTypeChoice(type);
@@ -68,7 +136,7 @@ export default function RegisterPage() {
     if (!token) throw new Error('Firebase token nije dostupan');
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/trpc/companies.registerSelf`,
+      `${API_URL}/trpc/companies.registerSelf`,
       {
         method: 'POST',
         headers: {
@@ -103,7 +171,7 @@ export default function RegisterPage() {
     if (!token) throw new Error('Firebase token nije dostupan');
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/trpc/agencies.register`,
+      `${API_URL}/trpc/agencies.register`,
       {
         method: 'POST',
         headers: {
@@ -163,6 +231,7 @@ export default function RegisterPage() {
     }
   };
 
+  const isInviteFlow = refParam === 'firma' && mbParam;
   const stepIndex = step === 'choose' ? 0 : step === 'account' ? 1 : 2;
 
   return (
@@ -176,7 +245,14 @@ export default function RegisterPage() {
             </div>
             <span className="font-bold text-2xl">Savetnik</span>
           </Link>
-          <p className="text-muted-foreground mt-2">Kreirajte besplatan nalog</p>
+          {isInviteFlow && inviteData ? (
+            <div className="mt-3">
+              <p className="text-sm text-muted-foreground">Aktivirajte stranicu za</p>
+              <p className="font-semibold text-lg">{inviteData.poslovnoIme}</p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground mt-2">Kreirajte besplatan nalog</p>
+          )}
         </div>
 
         {/* Registration Card */}
@@ -187,18 +263,28 @@ export default function RegisterPage() {
             </div>
           )}
 
+          {/* Invite banner */}
+          {isInviteFlow && inviteData && step !== 'choose' && (
+            <div className="mb-4 p-3 rounded-md bg-green-50 border border-green-200 text-xs text-green-800">
+              <strong>Besplatna web stranica</strong> za {inviteData.poslovnoIme}
+              {inviteData.opstina && ` (${inviteData.opstina})`}
+            </div>
+          )}
+
           {/* Step indicator */}
           <div className="flex items-center gap-2 mb-6">
-            {[0, 1, 2].map((i) => (
+            {(isInviteFlow ? [0, 1] : [0, 1, 2]).map((i) => (
               <div
                 key={i}
-                className={`h-2 flex-1 rounded-full ${i <= stepIndex ? 'bg-primary' : 'bg-muted'}`}
+                className={`h-2 flex-1 rounded-full ${
+                  i <= (isInviteFlow ? stepIndex - 1 : stepIndex) ? 'bg-primary' : 'bg-muted'
+                }`}
               />
             ))}
           </div>
 
-          {/* Step 0: Choose user type */}
-          {step === 'choose' && (
+          {/* Step 0: Choose user type (skipped for invite flow) */}
+          {step === 'choose' && !isInviteFlow && (
             <div className="space-y-4">
               <h3 className="font-semibold text-center">Ko ste vi?</h3>
               <p className="text-sm text-muted-foreground text-center">
@@ -245,7 +331,7 @@ export default function RegisterPage() {
               {/* Google */}
               <button
                 onClick={handleGoogleRegister}
-                disabled={loading}
+                disabled={loading || inviteLoading}
                 className="w-full flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -300,16 +386,18 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => { setStep('choose'); setUserTypeChoice(null); }}
-                    className="flex-1 rounded-md border px-4 py-2.5 text-sm font-medium hover:bg-muted"
-                  >
-                    Nazad
-                  </button>
+                  {!isInviteFlow && (
+                    <button
+                      type="button"
+                      onClick={() => { setStep('choose'); setUserTypeChoice(null); }}
+                      className="flex-1 rounded-md border px-4 py-2.5 text-sm font-medium hover:bg-muted"
+                    >
+                      Nazad
+                    </button>
+                  )}
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                    className={`${isInviteFlow ? 'w-full' : 'flex-1'} rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90`}
                   >
                     Dalje
                   </button>
@@ -321,7 +409,9 @@ export default function RegisterPage() {
           {/* Step 2a: Company details */}
           {step === 'details' && userTypeChoice === 'company' && (
             <form onSubmit={handleSubmitDetails} className="space-y-4">
-              <h3 className="font-semibold">Podaci o vasoj firmi</h3>
+              <h3 className="font-semibold">
+                {isInviteFlow ? 'Potvrdite podatke firme' : 'Podaci o vasoj firmi'}
+              </h3>
               <p className="text-sm text-muted-foreground">Mozete promeniti ove podatke kasnije u podesavanjima.</p>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Naziv firme</label>
@@ -374,7 +464,7 @@ export default function RegisterPage() {
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setStep(isGoogleUser ? 'choose' : 'account')}
+                  onClick={() => setStep(isGoogleUser ? (isInviteFlow ? 'account' : 'choose') : 'account')}
                   className="flex-1 rounded-md border px-4 py-2.5 text-sm font-medium hover:bg-muted"
                 >
                   Nazad
