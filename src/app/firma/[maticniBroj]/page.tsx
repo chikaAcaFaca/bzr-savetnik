@@ -42,14 +42,14 @@ interface CompanyProfile {
 async function getCompanyProfile(maticniBroj: string): Promise<CompanyProfile | null> {
   try {
     const response = await fetch(
-      `${API_URL}/trpc/companyDirectory.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ maticniBroj }))}`,
+      `${API_URL}/trpc/companyDirectory.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ json: { maticniBroj } }))}`,
       { next: { revalidate: 86400 } }
     );
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    return data?.result?.data ?? null;
+    return data?.result?.data?.json ?? null;
   } catch {
     return null;
   }

@@ -71,11 +71,11 @@ function RegisterPageInner() {
 
       // Fetch company data from directory
       fetch(
-        `${API_URL}/trpc/companyDirectory.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ maticniBroj: mbParam }))}`
+        `${API_URL}/trpc/companyDirectory.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ json: { maticniBroj: mbParam } }))}`
       )
         .then((res) => res.json())
         .then((data) => {
-          const company = data?.result?.data;
+          const company = data?.result?.data?.json;
           if (company) {
             setInviteData({
               poslovnoIme: company.poslovnoIme,

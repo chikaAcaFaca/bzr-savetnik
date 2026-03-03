@@ -50,12 +50,12 @@ export default function AgencyMarketplacePage() {
       if (cityVal) input.city = cityVal;
 
       const response = await fetch(
-        `${API_URL}/trpc/agencies.listPublic?input=${encodeURIComponent(JSON.stringify(input))}`
+        `${API_URL}/trpc/agencies.listPublic?input=${encodeURIComponent(JSON.stringify({ json: input }))}`
       );
 
       if (response.ok) {
         const data = await response.json();
-        setAgencies(data?.result?.data ?? []);
+        setAgencies(data?.result?.data?.json ?? []);
       }
     } catch {
       // Ignore fetch errors

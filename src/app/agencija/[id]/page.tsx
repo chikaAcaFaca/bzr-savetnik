@@ -41,14 +41,14 @@ interface SocialLinks {
 async function getAgencyProfile(id: number): Promise<AgencyProfile | null> {
   try {
     const response = await fetch(
-      `${API_URL}/trpc/agencies.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ id }))}`,
+      `${API_URL}/trpc/agencies.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ json: { id } }))}`,
       { next: { revalidate: 86400 } }
     );
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    return data?.result?.data ?? null;
+    return data?.result?.data?.json ?? null;
   } catch {
     return null;
   }
