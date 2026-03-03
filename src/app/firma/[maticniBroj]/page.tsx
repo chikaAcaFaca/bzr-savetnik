@@ -43,7 +43,7 @@ async function getCompanyProfile(maticniBroj: string): Promise<CompanyProfile | 
   try {
     const response = await fetch(
       `${API_URL}/trpc/companyDirectory.getPublicProfile?input=${encodeURIComponent(JSON.stringify({ json: { maticniBroj } }))}`,
-      { next: { revalidate: 86400 } }
+      { next: { revalidate: 60 } }
     );
 
     if (!response.ok) return null;
@@ -102,6 +102,8 @@ export default async function CompanyMiniWebsite({
     notFound();
   }
 
+  // Trim whitespace from company name (some APR records have leading spaces)
+  company.poslovnoIme = company.poslovnoIme?.trim() || 'Nepoznato';
   const godinaOsnivanja = getGodinaOsnivanja(company.datumOsnivanja);
   const isClaimed = !!company.claimedAt;
 
