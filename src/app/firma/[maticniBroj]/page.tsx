@@ -8,6 +8,7 @@
  * when Render backend is sleeping (free tier).
  *
  * Phase 2: Financial data, social share, agency onboard button.
+ * Phase 3: Blog posts, offers, image gallery.
  */
 
 import { useState, useEffect } from 'react';
@@ -15,6 +16,16 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+interface CompanyPost {
+  id: number;
+  type: 'blog' | 'ponuda' | 'galerija';
+  title: string | null;
+  content: string | null;
+  imageUrl: string | null;
+  isPublished: boolean;
+  createdAt: string;
+}
 
 interface CompanyProfile {
   id: number;
@@ -82,6 +93,8 @@ export default function CompanyMiniWebsite() {
   const [onboarding, setOnboarding] = useState(false);
   const [onboardSuccess, setOnboardSuccess] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [posts, setPosts] = useState<CompanyPost[]>([]);
+  const [galleryLightbox, setGalleryLightbox] = useState<string | null>(null);
 
   useEffect(() => {
     if (!maticniBroj) return;
@@ -101,6 +114,17 @@ export default function CompanyMiniWebsite() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+
+    // Fetch posts
+    fetch(
+      `${API_URL}/trpc/companyDirectory.listPosts?input=${encodeURIComponent(JSON.stringify({ json: { maticniBroj } }))}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        const postsData = data?.result?.data?.json;
+        if (Array.isArray(postsData)) setPosts(postsData);
+      })
+      .catch(() => {});
 
     // Check if user is an agency user
     try {
@@ -210,6 +234,10 @@ export default function CompanyMiniWebsite() {
   const isClaimed = !!company.claimedAt;
   const hasFinancialData = company.prihod != null || company.rashod != null || company.dobitGubitak != null;
   const pageUrl = `https://bzr-savetnik.com/firma/${company.maticniBroj}`;
+
+  const blogPosts = posts.filter(p => p.type === 'blog');
+  const offers = posts.filter(p => p.type === 'ponuda');
+  const galleryImages = posts.filter(p => p.type === 'galerija');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -328,6 +356,77 @@ export default function CompanyMiniWebsite() {
                 </div>
               )}
             </section>
+
+            {/* Blog postovi */}
+            {blogPosts.length > 0 && (
+              <section className="bg-white rounded-xl border shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Blog</h2>
+                <div className="space-y-4">
+                  {blogPosts.map((post) => (
+                    <article key={post.id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                      {post.imageUrl && (
+                        <img src={post.imageUrl} alt={post.title || ''} className="w-full h-48 object-cover rounded-lg mb-3" />
+                      )}
+                      {post.title && (
+                        <h3 className="font-medium text-gray-900">{post.title}</h3>
+                      )}
+                      {post.content && (
+                        <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{post.content}</p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-2">
+                        {new Date(post.createdAt).toLocaleDateString('sr-Latn', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Ponude */}
+            {offers.length > 0 && (
+              <section className="bg-white rounded-xl border shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Ponude</h2>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {offers.map((post) => (
+                    <div key={post.id} className="rounded-lg border p-4 hover:shadow-sm transition-shadow">
+                      {post.imageUrl && (
+                        <img src={post.imageUrl} alt={post.title || ''} className="w-full h-32 object-cover rounded-md mb-3" />
+                      )}
+                      {post.title && (
+                        <h3 className="font-medium text-gray-900 text-sm">{post.title}</h3>
+                      )}
+                      {post.content && (
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-3">{post.content}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Galerija */}
+            {galleryImages.length > 0 && (
+              <section className="bg-white rounded-xl border shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Galerija</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {galleryImages.map((post) => (
+                    post.imageUrl && (
+                      <button
+                        key={post.id}
+                        onClick={() => setGalleryLightbox(post.imageUrl)}
+                        className="aspect-square rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+                      >
+                        <img
+                          src={post.imageUrl}
+                          alt={post.title || ''}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    )
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Finansijski podaci (CompanyWall) */}
             {hasFinancialData && (
@@ -505,6 +604,29 @@ export default function CompanyMiniWebsite() {
           </div>
         </div>
       </main>
+
+      {/* Gallery lightbox */}
+      {galleryLightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setGalleryLightbox(null)}
+        >
+          <button
+            onClick={() => setGalleryLightbox(null)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+          >
+            <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={galleryLightbox}
+            alt=""
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="border-t bg-white mt-12">

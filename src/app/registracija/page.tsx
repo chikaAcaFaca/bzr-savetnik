@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Building2, Shield } from 'lucide-react';
+import { Building2, Shield, CheckCircle2, Loader2 } from 'lucide-react';
 import { refreshCachedToken } from '@/lib/trpc';
 
 type UserTypeChoice = null | 'company' | 'agency';
@@ -16,6 +16,20 @@ interface InviteCompanyData {
   maticniBroj: string;
   brojZaposlenih: number | null;
   opstina: string | null;
+}
+
+interface PibLookupResult {
+  found: boolean;
+  source?: 'directory' | 'registered';
+  alreadyRegistered?: boolean;
+  poslovnoIme?: string;
+  maticniBroj?: string;
+  opstina?: string | null;
+  grad?: string | null;
+  brojZaposlenih?: number | null;
+  sifraDelatnosti?: string | null;
+  adresa?: string | null;
+  pravnaForma?: string | null;
 }
 
 export default function RegisterPage() {
@@ -48,6 +62,10 @@ function RegisterPageInner() {
   const [companyPib, setCompanyPib] = useState('');
   const [employeeCount, setEmployeeCount] = useState('');
   const [tekuciRacun, setTekuciRacun] = useState('');
+  // PIB auto-lookup
+  const [pibLookupResult, setPibLookupResult] = useState<PibLookupResult | null>(null);
+  const [pibLookupLoading, setPibLookupLoading] = useState(false);
+  const pibLookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Agency fields
   const [agencyName, setAgencyName] = useState('');
   const [agencyPib, setAgencyPib] = useState('');
@@ -96,6 +114,58 @@ function RegisterPageInner() {
     }
   }, [refParam, mbParam]);
 
+  // PIB auto-lookup with debounce
+  const lookupPib = useCallback(async (pib: string) => {
+    if (!/^[0-9]{9}$/.test(pib)) {
+      setPibLookupResult(null);
+      return;
+    }
+
+    setPibLookupLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/trpc/companyDirectory.lookupByPib?input=${encodeURIComponent(JSON.stringify({ json: { pib } }))}`
+      );
+      const data = await res.json();
+      const result = data?.result?.data?.json as PibLookupResult | undefined;
+
+      if (result) {
+        setPibLookupResult(result);
+
+        // Auto-populate fields if found in directory
+        if (result.found && result.source === 'directory' && !result.alreadyRegistered) {
+          if (result.poslovnoIme) setCompanyName(result.poslovnoIme);
+          if (result.brojZaposlenih) setEmployeeCount(result.brojZaposlenih.toString());
+        }
+
+        // Show error if already registered
+        if (result.alreadyRegistered) {
+          setError('Firma sa ovim PIB-om vec postoji na platformi');
+        } else {
+          setError('');
+        }
+      }
+    } catch {
+      // Silently fail - user can still proceed manually
+    } finally {
+      setPibLookupLoading(false);
+    }
+  }, []);
+
+  const handlePibChange = (value: string) => {
+    // Only allow digits
+    const cleaned = value.replace(/\D/g, '').slice(0, 9);
+    setCompanyPib(cleaned);
+    setPibLookupResult(null);
+    setError('');
+
+    // Debounce lookup
+    if (pibLookupTimer.current) clearTimeout(pibLookupTimer.current);
+    if (cleaned.length === 9) {
+      pibLookupTimer.current = setTimeout(() => lookupPib(cleaned), 300);
+    }
+  };
+
   const handleChooseType = (type: UserTypeChoice) => {
     setUserTypeChoice(type);
     setStep('account');
@@ -107,6 +177,17 @@ function RegisterPageInner() {
 
     if (password.length < 8) {
       setError('Lozinka mora imati najmanje 8 karaktera');
+      return;
+    }
+
+    // For company flow: validate PIB before proceeding
+    if (userTypeChoice === 'company' && companyPib.length !== 9) {
+      setError('PIB mora imati tacno 9 cifara');
+      return;
+    }
+
+    if (userTypeChoice === 'company' && pibLookupResult?.alreadyRegistered) {
+      setError('Firma sa ovim PIB-om vec postoji na platformi');
       return;
     }
 
@@ -131,7 +212,7 @@ function RegisterPageInner() {
     }
   };
 
-  async function registerCompanyOnBackend(userEmail: string) {
+  async function registerCompanyOnBackend(userEmail: string): Promise<{ profileClaimed?: boolean }> {
     const token = await refreshCachedToken();
     if (!token) throw new Error('Firebase token nije dostupan');
 
@@ -164,6 +245,11 @@ function RegisterPageInner() {
         'Greska pri registraciji firme';
       throw new Error(message);
     }
+
+    const data = await response.json().catch(() => null);
+    return {
+      profileClaimed: data?.result?.data?.json?.profileClaimed ?? false,
+    };
   }
 
   async function registerAgencyOnBackend(userEmail: string) {
@@ -216,14 +302,20 @@ function RegisterPageInner() {
 
       // Register on backend based on user type
       if (userTypeChoice === 'company') {
-        await registerCompanyOnBackend(userEmail);
+        const result = await registerCompanyOnBackend(userEmail);
         localStorage.setItem('bzr_user_type', 'company');
+
+        // Redirect based on whether profile was auto-claimed
+        if (result.profileClaimed) {
+          router.push('/app/moja-stranica');
+        } else {
+          router.push('/app/dashboard');
+        }
       } else {
         await registerAgencyOnBackend(userEmail);
         localStorage.setItem('bzr_user_type', 'agency');
+        router.push('/app/dashboard');
       }
-
-      router.push('/app/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Greska pri registraciji');
     } finally {
@@ -301,8 +393,8 @@ function RegisterPageInner() {
                   <div>
                     <p className="font-medium">Firma / Poslodavac</p>
                     <p className="text-sm text-muted-foreground">
-                      Potrebna vam je BZR dokumentacija za vasu firmu.
-                      Besplatno 30 dana.
+                      Kreirajte besplatnu web stranicu za vasu firmu.
+                      Blog, ponude, galerija - zauvek besplatno.
                     </p>
                   </div>
                 </button>
@@ -385,6 +477,55 @@ function RegisterPageInner() {
                     className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
+
+                {/* PIB field moved here for company flow */}
+                {userTypeChoice === 'company' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">PIB firme</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={companyPib}
+                        onChange={(e) => handlePibChange(e.target.value)}
+                        placeholder="123456789"
+                        required
+                        maxLength={9}
+                        inputMode="numeric"
+                        className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                          pibLookupResult?.alreadyRegistered ? 'border-destructive' : ''
+                        } ${pibLookupResult?.found && !pibLookupResult?.alreadyRegistered ? 'border-green-500' : ''}`}
+                      />
+                      {pibLookupLoading && (
+                        <div className="absolute right-3 top-2.5">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                      {pibLookupResult?.found && !pibLookupResult?.alreadyRegistered && (
+                        <div className="absolute right-3 top-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PIB lookup success badge */}
+                    {pibLookupResult?.found && pibLookupResult.source === 'directory' && !pibLookupResult.alreadyRegistered && (
+                      <div className="mt-2 p-2 rounded-md bg-green-50 border border-green-200 text-xs text-green-800">
+                        <span className="font-medium">Pronadjeno:</span> {pibLookupResult.poslovnoIme}
+                        {pibLookupResult.opstina && ` (${pibLookupResult.grad || pibLookupResult.opstina}`}
+                        {pibLookupResult.brojZaposlenih && `, ${pibLookupResult.brojZaposlenih} zaposlenih`}
+                        {(pibLookupResult.opstina || pibLookupResult.brojZaposlenih) && ')'}
+                      </div>
+                    )}
+
+                    {/* Already registered error */}
+                    {pibLookupResult?.alreadyRegistered && (
+                      <p className="mt-1 text-xs text-destructive">
+                        Firma sa ovim PIB-om vec postoji na platformi
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   {!isInviteFlow && (
                     <button
@@ -397,7 +538,8 @@ function RegisterPageInner() {
                   )}
                   <button
                     type="submit"
-                    className={`${isInviteFlow ? 'w-full' : 'flex-1'} rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90`}
+                    disabled={pibLookupResult?.alreadyRegistered === true}
+                    className={`${isInviteFlow ? 'w-full' : 'flex-1'} rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50`}
                   >
                     Dalje
                   </button>
@@ -421,19 +563,6 @@ function RegisterPageInner() {
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder="Moja Firma d.o.o."
                   required
-                  className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">PIB</label>
-                <input
-                  type="text"
-                  value={companyPib}
-                  onChange={(e) => setCompanyPib(e.target.value)}
-                  placeholder="123456789"
-                  required
-                  maxLength={9}
-                  pattern="[0-9]{9}"
                   className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -531,7 +660,8 @@ function RegisterPageInner() {
           {/* Info banner */}
           {userTypeChoice === 'company' && (
             <div className="mt-4 p-3 rounded-md bg-blue-50 border border-blue-200 text-xs text-blue-800">
-              <strong>30 dana besplatno</strong> - bez kreditne kartice. Placanje IPS QR kodom nakon trial perioda.
+              <strong>Besplatna web stranica zauvek</strong> - dodajte slike, tekstove, blog postove
+              i ponude. BZR dokumentacija dostupna u premium paketu.
             </div>
           )}
           {userTypeChoice === 'agency' && (

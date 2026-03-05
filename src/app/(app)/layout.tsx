@@ -31,6 +31,7 @@ import {
   Upload,
   GitBranch,
   Mail,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 
@@ -72,6 +73,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Company navigation items
   const companyNavItems = [
     { href: '/app/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { href: '/app/moja-stranica', icon: Globe, label: 'Moja Stranica' },
     { href: '/app/evidencije', icon: ClipboardList, label: 'Evidencije' },
     { href: '/app/dokumenti-firme', icon: Upload, label: 'Dokumenti firme' },
     { href: '/app/dokumenti', icon: FileText, label: 'Dokumenti' },
