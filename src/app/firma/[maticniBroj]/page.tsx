@@ -6,6 +6,8 @@
  * Professional mini web page for each company in the 136k+ directory.
  * Client component - fetches data on mount to avoid Vercel SSR timeout
  * when Render backend is sleeping (free tier).
+ *
+ * Phase 2: Financial data, social share, agency onboard button.
  */
 
 import { useState, useEffect } from 'react';
@@ -39,6 +41,12 @@ interface CompanyProfile {
   email: string | null;
   webSajt: string | null;
   adresa: string | null;
+  // CompanyWall financial data
+  prihod: number | null;
+  rashod: number | null;
+  dobitGubitak: number | null;
+  kapital: number | null;
+  companyWallUrl: string | null;
 }
 
 function getGodinaOsnivanja(datumOsnivanja: string | null): string | null {
@@ -47,12 +55,33 @@ function getGodinaOsnivanja(datumOsnivanja: string | null): string | null {
   return match ? match[0] : null;
 }
 
+/** Format number in Serbian style: 1.234.567 RSD */
+function formatRsd(amount: number | null | undefined): string {
+  if (amount == null) return '-';
+  return amount.toLocaleString('sr-RS') + ' RSD';
+}
+
+/** Shorten large numbers: 12.500.000 -> 12,5M */
+function formatShortRsd(amount: number | null | undefined): string {
+  if (amount == null) return '-';
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
+  if (abs >= 1_000_000_000) return sign + (abs / 1_000_000_000).toFixed(1).replace('.', ',') + ' mlrd';
+  if (abs >= 1_000_000) return sign + (abs / 1_000_000).toFixed(1).replace('.', ',') + 'M';
+  if (abs >= 1_000) return sign + (abs / 1_000).toFixed(0) + 'K';
+  return amount.toLocaleString('sr-RS');
+}
+
 export default function CompanyMiniWebsite() {
   const params = useParams();
   const maticniBroj = params.maticniBroj as string;
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isAgency, setIsAgency] = useState(false);
+  const [onboarding, setOnboarding] = useState(false);
+  const [onboardSuccess, setOnboardSuccess] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     if (!maticniBroj) return;
@@ -72,7 +101,55 @@ export default function CompanyMiniWebsite() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+
+    // Check if user is an agency user
+    try {
+      const userType = localStorage.getItem('bzr_user_type');
+      if (userType === 'agency') setIsAgency(true);
+    } catch {}
   }, [maticniBroj]);
+
+  const handleAgencyOnboard = async () => {
+    setOnboarding(true);
+    try {
+      const token = localStorage.getItem('bzr_token');
+      if (!token) {
+        alert('Morate biti prijavljeni kao agencija');
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/trpc/companyDirectory.agencyOnboardClient`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ json: { maticniBroj, sendNotification: true } }),
+      });
+
+      const data = await res.json();
+      if (data?.result?.data?.json?.company) {
+        setOnboardSuccess(true);
+        // Refresh profile
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        const errorMsg = data?.error?.json?.message || 'Greska pri preuzimanju klijenta';
+        alert(errorMsg);
+      }
+    } catch (err) {
+      alert('Greska pri preuzimanju klijenta. Pokusajte ponovo.');
+    } finally {
+      setOnboarding(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    const url = `https://bzr-savetnik.com/firma/${maticniBroj}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  };
 
   if (loading) {
     return (
@@ -131,6 +208,8 @@ export default function CompanyMiniWebsite() {
 
   const godinaOsnivanja = getGodinaOsnivanja(company.datumOsnivanja);
   const isClaimed = !!company.claimedAt;
+  const hasFinancialData = company.prihod != null || company.rashod != null || company.dobitGubitak != null;
+  const pageUrl = `https://bzr-savetnik.com/firma/${company.maticniBroj}`;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -155,10 +234,44 @@ export default function CompanyMiniWebsite() {
                 </div>
               )}
 
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">
-                  {company.poslovnoIme}
-                </h1>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+                    {company.poslovnoIme}
+                  </h1>
+                  {/* Share buttons */}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <a
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      title="Podeli na LinkedIn"
+                    >
+                      <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </a>
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      title="Podeli na Facebook"
+                    >
+                      <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <button
+                      onClick={handleCopyLink}
+                      className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                      title={linkCopied ? 'Kopirano!' : 'Kopiraj link'}
+                    >
+                      {linkCopied ? (
+                        <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      ) : (
+                        <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-3.318a4.5 4.5 0 00-1.242-7.244l-4.5-4.5a4.5 4.5 0 00-6.364 6.364l1.757 1.757" /></svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-green-100">
                   {company.sifraDelatnosti && <span>Delatnost {company.sifraDelatnosti}</span>}
                   {company.opstina && <span>{company.opstina}</span>}
@@ -216,6 +329,50 @@ export default function CompanyMiniWebsite() {
               )}
             </section>
 
+            {/* Finansijski podaci (CompanyWall) */}
+            {hasFinancialData && (
+              <section className="bg-white rounded-xl border shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Finansijski podaci</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                  {company.prihod != null && (
+                    <div className="bg-green-50 rounded-lg p-4 text-center">
+                      <p className="text-xs text-gray-500 mb-1">Prihod</p>
+                      <p className="text-lg font-bold text-green-700">{formatShortRsd(company.prihod)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{formatRsd(company.prihod)}</p>
+                    </div>
+                  )}
+                  {company.rashod != null && (
+                    <div className="bg-red-50 rounded-lg p-4 text-center">
+                      <p className="text-xs text-gray-500 mb-1">Rashod</p>
+                      <p className="text-lg font-bold text-red-700">{formatShortRsd(company.rashod)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{formatRsd(company.rashod)}</p>
+                    </div>
+                  )}
+                  {company.dobitGubitak != null && (
+                    <div className={`${company.dobitGubitak >= 0 ? 'bg-blue-50' : 'bg-orange-50'} rounded-lg p-4 text-center`}>
+                      <p className="text-xs text-gray-500 mb-1">{company.dobitGubitak >= 0 ? 'Dobit' : 'Gubitak'}</p>
+                      <p className={`text-lg font-bold ${company.dobitGubitak >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                        {formatShortRsd(company.dobitGubitak)}
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{formatRsd(company.dobitGubitak)}</p>
+                    </div>
+                  )}
+                </div>
+                {company.kapital != null && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Kapital:</span> {formatRsd(company.kapital)}
+                  </p>
+                )}
+                <p className="text-[11px] text-gray-400 mt-3">
+                  Izvor: {company.companyWallUrl ? (
+                    <a href={company.companyWallUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      CompanyWall.rs
+                    </a>
+                  ) : 'CompanyWall.rs'}
+                </p>
+              </section>
+            )}
+
             {/* Osnovni podaci */}
             <section className="bg-white rounded-xl border shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Osnovni podaci</h2>
@@ -269,8 +426,34 @@ export default function CompanyMiniWebsite() {
               </div>
             </section>
 
-            {/* CTA Card */}
-            {!company.registrovan ? (
+            {/* CTA Card - Agency Onboard or Standard CTA */}
+            {isAgency && !company.bzrAgencijaNaziv ? (
+              <section className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 shadow-sm p-6 text-center">
+                <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-3">
+                  <svg className="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM3 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 019.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                  </svg>
+                </div>
+                {onboardSuccess ? (
+                  <>
+                    <h3 className="font-semibold text-green-900 mb-1">Klijent preuzet!</h3>
+                    <p className="text-sm text-green-700">{company.poslovnoIme} je dodat kao vas klijent.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-semibold text-indigo-900 mb-1">Preuzmite kao klijenta</h3>
+                    <p className="text-sm text-indigo-700 mb-4">Dodajte ovu firmu kao klijenta vase agencije</p>
+                    <button
+                      onClick={handleAgencyOnboard}
+                      disabled={onboarding}
+                      className="block w-full px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                    >
+                      {onboarding ? 'Preuzimanje...' : 'Preuzmi kao klijenta'}
+                    </button>
+                  </>
+                )}
+              </section>
+            ) : !company.registrovan ? (
               <section className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm p-6 text-center">
                 <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
                   <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -335,7 +518,7 @@ export default function CompanyMiniWebsite() {
                 Powered by <Link href="/" className="text-green-600 hover:underline font-medium">BZR Savetnik</Link>
               </span>
             </div>
-            <p className="text-xs text-gray-400">Podaci iz Agencije za privredne registre (APR)</p>
+            <p className="text-xs text-gray-400">Podaci iz Agencije za privredne registre (APR) i CompanyWall.rs</p>
           </div>
         </div>
       </footer>
