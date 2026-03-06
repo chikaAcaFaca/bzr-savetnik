@@ -37,6 +37,10 @@ interface ProfileData {
   kratakOpis: string | null;
   usluge: string | null;
   logoUrl: string | null;
+  telefon: string | null;
+  email: string | null;
+  adresa: string | null;
+  webSajt: string | null;
   telefonVidljiv: boolean | null;
   emailVidljiv: boolean | null;
   kontaktFormAktivna: boolean | null;
@@ -57,6 +61,12 @@ export default function MojaStranicaPage() {
   const [kratakOpis, setKratakOpis] = useState('');
   const [usluge, setUsluge] = useState('');
 
+  // Contact info form
+  const [telefon, setTelefon] = useState('');
+  const [emailKontakt, setEmailKontakt] = useState('');
+  const [adresa, setAdresa] = useState('');
+  const [webSajt, setWebSajt] = useState('');
+
   // Settings form
   const [telefonVidljiv, setTelefonVidljiv] = useState(false);
   const [emailVidljiv, setEmailVidljiv] = useState(false);
@@ -71,10 +81,12 @@ export default function MojaStranicaPage() {
   const [postType, setPostType] = useState<'blog' | 'ponuda' | 'galerija'>('blog');
   const [uploading, setUploading] = useState(false);
 
-  // AI generation
+  // AI generation & improvement
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
   const [postsRemaining, setPostsRemaining] = useState(5);
+  const [aiImproving, setAiImproving] = useState(false);
+  const [aiInstruction, setAiInstruction] = useState('');
 
   useEffect(() => {
     loadData();
@@ -135,6 +147,10 @@ export default function MojaStranicaPage() {
           setProfile(dirProfile);
           setKratakOpis(dirProfile.kratakOpis || '');
           setUsluge(dirProfile.usluge || '');
+          setTelefon(dirProfile.telefon || '');
+          setEmailKontakt(dirProfile.email || '');
+          setAdresa(dirProfile.adresa || '');
+          setWebSajt(dirProfile.webSajt || '');
           setTelefonVidljiv(dirProfile.telefonVidljiv ?? false);
           setEmailVidljiv(dirProfile.emailVidljiv ?? false);
           setKontaktFormAktivna(dirProfile.kontaktFormAktivna ?? false);
@@ -187,6 +203,10 @@ export default function MojaStranicaPage() {
     setSuccess('');
     try {
       await trpcCall('companyDirectory.updateMyProfile', 'POST', {
+        telefon,
+        email: emailKontakt,
+        adresa,
+        webSajt,
         telefonVidljiv,
         emailVidljiv,
         kontaktFormAktivna,
@@ -197,6 +217,31 @@ export default function MojaStranicaPage() {
       setError(err instanceof Error ? err.message : 'Greska pri cuvanju');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleAiImprove() {
+    const textToImprove = postContent.trim();
+    if (!textToImprove || textToImprove.length < 10) return;
+    setAiImproving(true);
+    setError('');
+    try {
+      const type = activeTab === 'ponude' ? 'ponuda' : 'blog';
+      const result = await trpcCall('companyDirectory.improveText', 'POST', {
+        text: textToImprove,
+        instruction: aiInstruction.trim() || undefined,
+        type,
+      });
+      if (result?.improved) {
+        setPostContent(result.improved);
+        setAiInstruction('');
+        setSuccess('Tekst poboljsan! Pregledajte izmene.');
+        setTimeout(() => setSuccess(''), 5000);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Greska pri poboljsanju teksta');
+    } finally {
+      setAiImproving(false);
     }
   }
 
@@ -558,6 +603,27 @@ export default function MojaStranicaPage() {
                     maxLength={10000}
                     className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                   />
+                  {/* AI Improve existing text */}
+                  {postContent.length >= 10 && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={aiInstruction}
+                        onChange={(e) => setAiInstruction(e.target.value)}
+                        placeholder="Opciono: kako da poboljsa? (npr. formalniji ton, krace...)"
+                        className="flex-1 rounded-md border px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+                        disabled={aiImproving}
+                      />
+                      <button
+                        onClick={handleAiImprove}
+                        disabled={aiImproving}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-primary/30 text-xs font-medium text-primary hover:bg-primary/5 disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {aiImproving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {aiImproving ? 'Poboljsavam...' : 'Poboljsaj AI'}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -675,51 +741,104 @@ export default function MojaStranicaPage() {
 
       {/* Tab: Podesavanja */}
       {activeTab === 'podesavanja' && (
-        <div className="rounded-lg border bg-card p-6 space-y-6">
-          <h2 className="font-semibold">Vidljivost informacija</h2>
-          <p className="text-sm text-muted-foreground">
-            Izaberite koje informacije zelite da budu vidljive na vasoj javnoj stranici.
-          </p>
-
-          <div className="space-y-4">
-            <label className="flex items-center justify-between gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
+        <div className="space-y-6">
+          {/* Kontakt podaci */}
+          <div className="rounded-lg border bg-card p-6 space-y-4">
+            <h2 className="font-semibold">Kontakt podaci</h2>
+            <p className="text-sm text-muted-foreground">
+              Unesite kontakt informacije koje ce se prikazivati na vasoj javnoj stranici.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium">Telefon vidljiv</p>
-                <p className="text-xs text-muted-foreground">Vas broj telefona ce biti prikazan na javnoj stranici</p>
+                <label className="block text-sm font-medium mb-1.5">Telefon</label>
+                <input
+                  type="text"
+                  value={telefon}
+                  onChange={(e) => setTelefon(e.target.value)}
+                  placeholder="+381 11 1234567"
+                  className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
-              <input
-                type="checkbox"
-                checked={telefonVidljiv}
-                onChange={(e) => setTelefonVidljiv(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-300"
-              />
-            </label>
-
-            <label className="flex items-center justify-between gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
               <div>
-                <p className="text-sm font-medium">Email vidljiv</p>
-                <p className="text-xs text-muted-foreground">Vasa email adresa ce biti prikazana na javnoj stranici</p>
+                <label className="block text-sm font-medium mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={emailKontakt}
+                  onChange={(e) => setEmailKontakt(e.target.value)}
+                  placeholder="kontakt@firma.rs"
+                  className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Adresa</label>
               <input
-                type="checkbox"
-                checked={emailVidljiv}
-                onChange={(e) => setEmailVidljiv(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-300"
+                type="text"
+                value={adresa}
+                onChange={(e) => setAdresa(e.target.value)}
+                placeholder="Ulica i broj, Grad"
+                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
-            </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Web sajt</label>
+              <input
+                type="text"
+                value={webSajt}
+                onChange={(e) => setWebSajt(e.target.value)}
+                placeholder="https://www.vasafirma.rs"
+                className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
 
-            <label className="flex items-center justify-between gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
-              <div>
-                <p className="text-sm font-medium">Kontakt forma aktivna</p>
-                <p className="text-xs text-muted-foreground">Posetioci mogu da vas kontaktiraju putem forme na stranici</p>
-              </div>
-              <input
-                type="checkbox"
-                checked={kontaktFormAktivna}
-                onChange={(e) => setKontaktFormAktivna(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-300"
-              />
-            </label>
+          {/* Vidljivost */}
+          <div className="rounded-lg border bg-card p-6 space-y-4">
+            <h2 className="font-semibold">Vidljivost informacija</h2>
+            <p className="text-sm text-muted-foreground">
+              Izaberite koje informacije zelite da budu vidljive na vasoj javnoj stranici.
+            </p>
+
+            <div className="space-y-4">
+              <label className="flex items-center justify-between gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
+                <div>
+                  <p className="text-sm font-medium">Telefon vidljiv</p>
+                  <p className="text-xs text-muted-foreground">Vas broj telefona ce biti prikazan na javnoj stranici</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={telefonVidljiv}
+                  onChange={(e) => setTelefonVidljiv(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
+                <div>
+                  <p className="text-sm font-medium">Email vidljiv</p>
+                  <p className="text-xs text-muted-foreground">Vasa email adresa ce biti prikazana na javnoj stranici</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={emailVidljiv}
+                  onChange={(e) => setEmailVidljiv(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300"
+                />
+              </label>
+
+              <label className="flex items-center justify-between gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50">
+                <div>
+                  <p className="text-sm font-medium">Kontakt forma aktivna</p>
+                  <p className="text-xs text-muted-foreground">Posetioci mogu da vas kontaktiraju putem forme na stranici</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={kontaktFormAktivna}
+                  onChange={(e) => setKontaktFormAktivna(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300"
+                />
+              </label>
+            </div>
           </div>
 
           <button
