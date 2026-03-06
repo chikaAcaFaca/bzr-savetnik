@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { refreshCachedToken } from '@/lib/trpc';
 import {
-  FileText, Tag, Image, Settings, Plus, Trash2, Edit2, Save, X, Loader2, ExternalLink, Eye, EyeOff,
+  FileText, Tag, Image, Settings, Plus, Trash2, Edit2, Save, X, Loader2, ExternalLink, Eye, EyeOff, Sparkles,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -70,6 +70,11 @@ export default function MojaStranicaPage() {
   const [postImageUrl, setPostImageUrl] = useState('');
   const [postType, setPostType] = useState<'blog' | 'ponuda' | 'galerija'>('blog');
   const [uploading, setUploading] = useState(false);
+
+  // AI generation
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiTopic, setAiTopic] = useState('');
+  const [postsRemaining, setPostsRemaining] = useState(5);
 
   useEffect(() => {
     loadData();
@@ -140,9 +145,13 @@ export default function MojaStranicaPage() {
 
       // Load posts
       try {
-        const myPosts = await trpcCall('companyDirectory.myPosts', 'GET');
-        if (Array.isArray(myPosts)) {
-          setPosts(myPosts);
+        const myPostsData = await trpcCall('companyDirectory.myPosts', 'GET');
+        if (myPostsData && Array.isArray(myPostsData.posts)) {
+          setPosts(myPostsData.posts);
+          setPostsRemaining(myPostsData.postsRemaining ?? 5);
+        } else if (Array.isArray(myPostsData)) {
+          // Backwards compatibility
+          setPosts(myPostsData);
         }
       } catch {
         // No posts yet
@@ -282,6 +291,28 @@ export default function MojaStranicaPage() {
       setError(err instanceof Error ? err.message : 'Greska pri otpremanju');
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleAiGenerate() {
+    if (!aiTopic.trim()) return;
+    setAiGenerating(true);
+    setError('');
+    try {
+      const type = activeTab === 'ponude' ? 'ponuda' : 'blog';
+      const result = await trpcCall('companyDirectory.generatePostContent', 'POST', {
+        topic: aiTopic.trim(),
+        type,
+      });
+      if (result?.title) setPostTitle(result.title);
+      if (result?.content) setPostContent(result.content);
+      setAiTopic('');
+      setSuccess('AI tekst generisan! Mozete ga izmeniti pre objavljivanja.');
+      setTimeout(() => setSuccess(''), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Greska pri generisanju AI teksta');
+    } finally {
+      setAiGenerating(false);
     }
   }
 
@@ -440,15 +471,21 @@ export default function MojaStranicaPage() {
       {/* Tabs: Blog / Ponude / Galerija */}
       {(activeTab === 'blog' || activeTab === 'ponude' || activeTab === 'galerija') && (
         <div className="space-y-4">
-          {/* Add new button */}
+          {/* Add new button + remaining counter */}
           {!newPost && !editingPost && (
-            <button
-              onClick={startNewPost}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4" />
-              {activeTab === 'blog' ? 'Novi blog post' : activeTab === 'ponude' ? 'Nova ponuda' : 'Nova slika'}
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={startNewPost}
+                disabled={postsRemaining <= 0}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+              >
+                <Plus className="h-4 w-4" />
+                {activeTab === 'blog' ? 'Novi blog post' : activeTab === 'ponude' ? 'Nova ponuda' : 'Nova slika'}
+              </button>
+              <span className="text-sm text-muted-foreground">
+                Preostalo objava ovog meseca: {postsRemaining}/5
+              </span>
+            </div>
           )}
 
           {/* Post editor (create or edit) */}
@@ -463,6 +500,38 @@ export default function MojaStranicaPage() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
+
+              {/* AI Generation */}
+              {activeTab !== 'galerija' && (
+                <div className="rounded-md border border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                    <Sparkles className="h-4 w-4" />
+                    Generisi AI tekstom
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={aiTopic}
+                      onChange={(e) => setAiTopic(e.target.value)}
+                      placeholder="O cemu zelite da pisete? (npr. Bezbednost na radu u zimskim uslovima)"
+                      maxLength={500}
+                      className="flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      disabled={aiGenerating}
+                    />
+                    <button
+                      onClick={handleAiGenerate}
+                      disabled={aiGenerating || !aiTopic.trim()}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {aiGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      {aiGenerating ? 'Generisanje...' : 'Generisi'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    AI ce generisati naslov i tekst koji mozete izmeniti pre objavljivanja.
+                  </p>
+                </div>
+              )}
 
               {activeTab !== 'galerija' && (
                 <div>

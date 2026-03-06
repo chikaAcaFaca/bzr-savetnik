@@ -317,7 +317,17 @@ function RegisterPageInner() {
         router.push('/app/dashboard');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greska pri registraciji');
+      const msg = err instanceof Error ? err.message : 'Greska pri registraciji';
+      // Translate Firebase error codes to Serbian
+      if (msg.includes('auth/email-already-in-use')) {
+        setError('Nalog sa ovom email adresom vec postoji. Prijavite se na stranici za prijavu.');
+      } else if (msg.includes('auth/weak-password')) {
+        setError('Lozinka je preslaba. Koristite najmanje 8 karaktera.');
+      } else if (msg.includes('auth/invalid-email')) {
+        setError('Email adresa nije validna.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
