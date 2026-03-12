@@ -138,12 +138,8 @@ function RegisterPageInner() {
           if (result.brojZaposlenih) setEmployeeCount(result.brojZaposlenih.toString());
         }
 
-        // Show error if already registered
-        if (result.alreadyRegistered) {
-          setError('Firma sa ovim PIB-om vec postoji na platformi');
-        } else {
-          setError('');
-        }
+        // Clear error if lookup succeeded (inline message handles alreadyRegistered)
+        setError('');
       }
     } catch {
       // Silently fail - user can still proceed manually
@@ -187,7 +183,7 @@ function RegisterPageInner() {
     }
 
     if (userTypeChoice === 'company' && pibLookupResult?.alreadyRegistered) {
-      setError('Firma sa ovim PIB-om vec postoji na platformi');
+      setError('Firma sa ovim PIB-om je vec registrovana. Prijavite se sa postojecim nalogom.');
       return;
     }
 
@@ -527,11 +523,18 @@ function RegisterPageInner() {
                       </div>
                     )}
 
-                    {/* Already registered error */}
+                    {/* Already registered - suggest login */}
                     {pibLookupResult?.alreadyRegistered && (
-                      <p className="mt-1 text-xs text-destructive">
-                        Firma sa ovim PIB-om vec postoji na platformi
-                      </p>
+                      <div className="mt-2 p-2 rounded-md bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                        <p className="font-medium">Firma sa ovim PIB-om vec postoji na platformi.</p>
+                        <p className="mt-1">
+                          Ako je ovo vasa firma,{' '}
+                          <Link href="/prijava" className="text-primary font-medium hover:underline">
+                            prijavite se
+                          </Link>{' '}
+                          sa nalogom koji ste koristili pri registraciji.
+                        </p>
+                      </div>
                     )}
                   </div>
                 )}
