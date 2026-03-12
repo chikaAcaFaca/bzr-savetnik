@@ -74,9 +74,7 @@ export default function CompanyDirectoryPage() {
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-green-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">BZR</span>
-            </div>
+            <img src="/logo.png" alt="BZR Savetnik" className="h-8 w-8 object-contain" />
             <span className="font-bold text-gray-900">Savetnik</span>
           </Link>
           <div className="flex items-center gap-3">

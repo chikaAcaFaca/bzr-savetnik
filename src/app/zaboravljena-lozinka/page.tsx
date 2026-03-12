@@ -30,9 +30,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">BZR</span>
-            </div>
+            <img src="/logo.png" alt="BZR Savetnik" className="h-12 w-12 object-contain" />
             <span className="font-bold text-2xl">Savetnik</span>
           </Link>
           <p className="text-muted-foreground mt-2">Resetujte vasu lozinku</p>

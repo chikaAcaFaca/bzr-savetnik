@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Noto_Sans } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { TRPCProvider } from '@/providers/TRPCProvider';
+import { BackendKeepalive } from '@/components/backend-keepalive';
 import './globals.css';
 
 const notoSans = Noto_Sans({
@@ -73,6 +74,7 @@ export default function RootLayout({
       <body className={`${notoSans.className} antialiased`}>
         <AuthProvider>
           <TRPCProvider>
+            <BackendKeepalive />
             {children}
           </TRPCProvider>
         </AuthProvider>

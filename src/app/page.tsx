@@ -18,9 +18,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">BZR</span>
-              </div>
+              <img src="/logo.png" alt="BZR Savetnik" className="h-9 w-9 object-contain" />
               <span className="font-bold text-xl">Savetnik</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
@@ -468,9 +466,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">BZR</span>
-                </div>
+                <img src="/logo.png" alt="BZR Savetnik" className="h-9 w-9 object-contain" />
                 <span className="font-bold">Savetnik</span>
               </div>
               <p className="text-sm text-muted-foreground">

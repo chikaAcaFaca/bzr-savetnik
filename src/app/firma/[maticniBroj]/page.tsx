@@ -639,9 +639,7 @@ export default function CompanyMiniWebsite() {
         <div className="max-w-5xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded bg-green-600 flex items-center justify-center">
-                <span className="text-white font-bold text-[10px]">BZR</span>
-              </div>
+              <img src="/logo.png" alt="BZR Savetnik" className="h-6 w-6 object-contain" />
               <span className="text-sm text-gray-600">
                 Powered by <Link href="/" className="text-green-600 hover:underline font-medium">BZR Savetnik</Link>
               </span>
@@ -661,9 +659,7 @@ function Header() {
     <header className="bg-white border-b sticky top-0 z-10">
       <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-green-600 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">BZR</span>
-          </div>
+          <img src="/logo.png" alt="BZR Savetnik" className="h-8 w-8 object-contain" />
           <span className="font-bold text-gray-900">Savetnik</span>
         </Link>
         <div className="flex items-center gap-3">

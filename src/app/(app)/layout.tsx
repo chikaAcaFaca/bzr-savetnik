@@ -109,9 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="p-4 border-b">
           <Link href="/app/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">BZR</span>
-            </div>
+            <img src="/logo.png" alt="BZR Savetnik" className="h-8 w-8 object-contain" />
             <span className="font-bold">Savetnik</span>
           </Link>
           {userType && (
