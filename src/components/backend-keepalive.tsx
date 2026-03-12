@@ -7,19 +7,25 @@ const PING_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Invisible component that pings the backend health endpoint
- * every 10 minutes to prevent Render free tier from sleeping
- * (Render spins down after 15 min of inactivity).
+ * every 10 minutes to prevent Render free tier from sleeping.
+ * Skips pings between 1:00 AM and 6:00 AM Belgrade time.
  */
+function isBelgradeQuietHours(): boolean {
+  const now = new Date();
+  const belgradeHour = parseInt(
+    now.toLocaleString('en-US', { timeZone: 'Europe/Belgrade', hour: 'numeric', hour12: false })
+  );
+  return belgradeHour >= 1 && belgradeHour < 6;
+}
+
 export function BackendKeepalive() {
   useEffect(() => {
     const ping = () => {
+      if (isBelgradeQuietHours()) return;
       fetch(`${API_URL}/health`, { method: 'GET', mode: 'no-cors' }).catch(() => {});
     };
 
-    // Ping on mount (page load)
     ping();
-
-    // Then every 10 minutes
     const interval = setInterval(ping, PING_INTERVAL);
     return () => clearInterval(interval);
   }, []);
