@@ -22,7 +22,16 @@ export default function LoginPage() {
       await loginWithEmail(email, password);
       router.push('/app/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Greska pri prijavljivanju');
+      const msg = err instanceof Error ? err.message : 'Greska pri prijavljivanju';
+      if (msg.includes('auth/invalid-credential') || msg.includes('auth/wrong-password') || msg.includes('auth/user-not-found')) {
+        setError('Pogresan email ili lozinka. Proverite podatke ili koristite Google prijavu.');
+      } else if (msg.includes('auth/too-many-requests')) {
+        setError('Previse neuspesnih pokusaja. Sacekajte par minuta ili resetujte lozinku.');
+      } else if (msg.includes('auth/user-disabled')) {
+        setError('Ovaj nalog je deaktiviran. Kontaktirajte podrsku.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
