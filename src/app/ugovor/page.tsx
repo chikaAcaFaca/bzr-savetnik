@@ -154,7 +154,7 @@ export default function ContractPage() {
       <header className="bg-white border-b">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="BZR Savetnik" className="h-8 w-8 object-contain" />
+            <img src="/logo.png" alt="BZR Savetnik" className="h-14 w-14 object-contain" />
             <span className="font-bold text-gray-900">Savetnik</span>
           </Link>
           <span className="text-gray-300">|</span>

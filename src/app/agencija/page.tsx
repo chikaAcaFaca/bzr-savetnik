@@ -75,7 +75,7 @@ export default function AgencyMarketplacePage() {
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="BZR Savetnik" className="h-8 w-8 object-contain" />
+            <img src="/logo.png" alt="BZR Savetnik" className="h-14 w-14 object-contain" />
             <span className="font-bold text-gray-900">Savetnik</span>
           </Link>
           <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export default function AgencyMarketplacePage() {
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="BZR Savetnik" className="h-6 w-6 object-contain" />
+              <img src="/logo.png" alt="BZR Savetnik" className="h-10 w-10 object-contain" />
               <span className="text-sm text-gray-600">
                 <Link href="/" className="text-green-600 hover:underline font-medium">BZR Savetnik</Link> Marketplace
               </span>

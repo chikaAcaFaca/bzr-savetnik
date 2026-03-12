@@ -37,7 +37,7 @@ export default function RegisterPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-muted/30">
         <div className="text-center">
-          <img src="/logo.png" alt="BZR Savetnik" className="h-12 w-12 object-contain mx-auto" />
+          <img src="/logo.png" alt="BZR Savetnik" className="h-20 w-20 object-contain mx-auto" />
           <p className="text-muted-foreground mt-4">Ucitavanje...</p>
         </div>
       </div>
@@ -336,7 +336,7 @@ function RegisterPageInner() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.png" alt="BZR Savetnik" className="h-12 w-12 object-contain" />
+            <img src="/logo.png" alt="BZR Savetnik" className="h-20 w-20 object-contain" />
             <span className="font-bold text-2xl">Savetnik</span>
           </Link>
           {isInviteFlow && inviteData ? (

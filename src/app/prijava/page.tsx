@@ -49,7 +49,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.png" alt="BZR Savetnik" className="h-12 w-12 object-contain" />
+            <img src="/logo.png" alt="BZR Savetnik" className="h-20 w-20 object-contain" />
             <span className="font-bold text-2xl">Savetnik</span>
           </Link>
           <p className="text-muted-foreground mt-2">Prijavite se na vas nalog</p>

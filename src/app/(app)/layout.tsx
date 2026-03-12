@@ -109,7 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         <div className="p-4 border-b">
           <Link href="/app/dashboard" className="flex items-center gap-2">
-            <img src="/logo.png" alt="BZR Savetnik" className="h-8 w-8 object-contain" />
+            <img src="/logo.png" alt="BZR Savetnik" className="h-14 w-14 object-contain" />
             <span className="font-bold">Savetnik</span>
           </Link>
           {userType && (
