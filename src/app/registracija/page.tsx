@@ -282,6 +282,18 @@ function RegisterPageInner() {
   const handleSubmitDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate PIB for company flow (Google users enter PIB in details step)
+    if (userTypeChoice === 'company' && companyPib.length !== 9) {
+      setError('PIB mora imati tacno 9 cifara');
+      return;
+    }
+
+    if (userTypeChoice === 'company' && pibLookupResult?.alreadyRegistered) {
+      setError('Firma sa ovim PIB-om je vec registrovana. Prijavite se sa postojecim nalogom.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -564,6 +576,60 @@ function RegisterPageInner() {
                 {isInviteFlow ? 'Potvrdite podatke firme' : 'Podaci o vasoj firmi'}
               </h3>
               <p className="text-sm text-muted-foreground">Mozete promeniti ove podatke kasnije u podesavanjima.</p>
+
+              {/* PIB field for Google users (skipped 'account' step) */}
+              {isGoogleUser && (
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">PIB firme</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={companyPib}
+                      onChange={(e) => handlePibChange(e.target.value)}
+                      placeholder="123456789"
+                      required
+                      maxLength={9}
+                      inputMode="numeric"
+                      className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                        pibLookupResult?.alreadyRegistered ? 'border-destructive' : ''
+                      } ${pibLookupResult?.found && !pibLookupResult?.alreadyRegistered ? 'border-green-500' : ''}`}
+                    />
+                    {pibLookupLoading && (
+                      <div className="absolute right-3 top-2.5">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                    {pibLookupResult?.found && !pibLookupResult?.alreadyRegistered && (
+                      <div className="absolute right-3 top-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      </div>
+                    )}
+                  </div>
+
+                  {pibLookupResult?.found && pibLookupResult.source === 'directory' && !pibLookupResult.alreadyRegistered && (
+                    <div className="mt-2 p-2 rounded-md bg-green-50 border border-green-200 text-xs text-green-800">
+                      <span className="font-medium">Pronadjeno:</span> {pibLookupResult.poslovnoIme}
+                      {pibLookupResult.opstina && ` (${pibLookupResult.grad || pibLookupResult.opstina}`}
+                      {pibLookupResult.brojZaposlenih && `, ${pibLookupResult.brojZaposlenih} zaposlenih`}
+                      {(pibLookupResult.opstina || pibLookupResult.brojZaposlenih) && ')'}
+                    </div>
+                  )}
+
+                  {pibLookupResult?.alreadyRegistered && (
+                    <div className="mt-2 p-2 rounded-md bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                      <p className="font-medium">Firma sa ovim PIB-om vec postoji na platformi.</p>
+                      <p className="mt-1">
+                        Ako je ovo vasa firma,{' '}
+                        <Link href="/prijava" className="text-primary font-medium hover:underline">
+                          prijavite se
+                        </Link>{' '}
+                        sa nalogom koji ste koristili pri registraciji.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium mb-1.5">Naziv firme</label>
                 <input
