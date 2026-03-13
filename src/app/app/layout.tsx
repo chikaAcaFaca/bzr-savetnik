@@ -18,6 +18,7 @@ import {
   Bot,
   Users,
   Settings,
+  Shield,
   LogOut,
   Menu,
   X,
@@ -67,6 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { href: '/app/ai-savetnik', icon: Bot, label: 'AI Savetnik' },
     { href: '/app/agenti', icon: Users, label: 'Agenti' },
     { href: '/app/newsletter', icon: Mail, label: 'Newsletter' },
+    { href: '/app/admin', icon: Shield, label: 'Admin sajta' },
     { href: '/app/podesavanja', icon: Settings, label: 'Podesavanja' },
   ];
 
