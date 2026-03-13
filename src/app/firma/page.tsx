@@ -109,7 +109,7 @@ export default function CompanyDirectoryPage() {
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
-              placeholder="Pretrazite po nazivu firme..."
+              placeholder="Pretrazite po nazivu, PIB-u ili maticnom broju..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 rounded-md border border-gray-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -167,6 +167,7 @@ export default function CompanyDirectoryPage() {
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Naziv firme</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">PIB</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Maticni br.</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Delatnost</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">Opstina</th>
@@ -188,6 +189,7 @@ export default function CompanyDirectoryPage() {
                           <span className="text-xs text-gray-400 ml-1">({company.pravnaForma})</span>
                         )}
                       </td>
+                      <td className="px-4 py-3 text-gray-500 font-mono text-xs">{company.pib || '-'}</td>
                       <td className="px-4 py-3 text-gray-500 font-mono text-xs">{company.maticniBroj}</td>
                       <td className="px-4 py-3 text-gray-500">{company.sifraDelatnosti || '-'}</td>
                       <td className="px-4 py-3 text-gray-500">{company.opstina || '-'}</td>
@@ -217,7 +219,7 @@ export default function CompanyDirectoryPage() {
                 >
                   <div className="font-medium text-green-700">{company.poslovnoIme}</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    MB: {company.maticniBroj} | {company.opstina || 'N/A'} | {company.sifraDelatnosti || 'N/A'}
+                    {company.pib && `PIB: ${company.pib} | `}MB: {company.maticniBroj} | {company.opstina || 'N/A'} | {company.sifraDelatnosti || 'N/A'}
                   </div>
                   {company.registrovan && (
                     <span className="inline-flex mt-2 px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">

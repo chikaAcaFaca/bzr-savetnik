@@ -30,6 +30,7 @@ interface CompanyPost {
 interface CompanyProfile {
   id: number;
   maticniBroj: string;
+  pib: string | null;
   poslovnoIme: string;
   pravnaForma: string | null;
   sifraDelatnosti: string | null;
@@ -477,6 +478,7 @@ export default function CompanyMiniWebsite() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Osnovni podaci</h2>
               <dl className="grid sm:grid-cols-2 gap-4 text-sm">
                 <DataRow label="Maticni broj" value={company.maticniBroj} mono />
+                {company.pib && <DataRow label="PIB" value={company.pib} mono />}
                 <DataRow label="Pravna forma" value={company.pravnaForma} />
                 <DataRow label="Sifra delatnosti" value={company.sifraDelatnosti} />
                 <DataRow label="Opstina" value={company.opstina} />
