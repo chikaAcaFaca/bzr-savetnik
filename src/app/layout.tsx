@@ -68,8 +68,11 @@ export default function RootLayout({
   return (
     <html lang="sr" className={notoSans.variable}>
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="theme-color" content="#2563eb" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="/favicon-16.png" sizes="16x16" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#f59e0b" />
       </head>
       <body className={`${notoSans.className} antialiased`}>
         <AuthProvider>
