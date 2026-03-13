@@ -43,3 +43,4 @@ Thumbs.db
 nul
 
 .vercel
+.env.vercel
