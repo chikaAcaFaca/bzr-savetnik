@@ -81,6 +81,18 @@ export default function MojaStranicaPage() {
   const [postType, setPostType] = useState<'blog' | 'ponuda' | 'galerija'>('blog');
   const [uploading, setUploading] = useState(false);
 
+  // Working hours
+  const defaultHours: Record<string, string> = {
+    ponedeljak: '08:00-16:00',
+    utorak: '08:00-16:00',
+    sreda: '08:00-16:00',
+    cetvrtak: '08:00-16:00',
+    petak: '08:00-16:00',
+    subota: 'Zatvoreno',
+    nedelja: 'Zatvoreno',
+  };
+  const [radnoVreme, setRadnoVreme] = useState<Record<string, string>>(defaultHours);
+
   // AI generation & improvement
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
@@ -154,6 +166,9 @@ export default function MojaStranicaPage() {
           setTelefonVidljiv(dirProfile.telefonVidljiv ?? false);
           setEmailVidljiv(dirProfile.emailVidljiv ?? false);
           setKontaktFormAktivna(dirProfile.kontaktFormAktivna ?? false);
+          if (dirProfile.radnoVreme && typeof dirProfile.radnoVreme === 'object') {
+            setRadnoVreme({ ...defaultHours, ...(dirProfile.radnoVreme as Record<string, string>) });
+          }
         }
       } catch {
         // No directory profile claimed yet
@@ -187,6 +202,7 @@ export default function MojaStranicaPage() {
       await trpcCall('companyDirectory.updateMyProfile', 'POST', {
         kratakOpis,
         usluge,
+        radnoVreme,
       });
       setSuccess('Sacuvano!');
       setTimeout(() => setSuccess(''), 3000);
@@ -500,6 +516,39 @@ export default function MojaStranicaPage() {
                 />
                 <p className="text-xs text-muted-foreground mt-1">{usluge.length}/1000</p>
               </div>
+
+              {/* Radno vreme editor */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Radno vreme</label>
+                <div className="grid gap-2">
+                  {[
+                    { key: 'ponedeljak', label: 'Ponedeljak' },
+                    { key: 'utorak', label: 'Utorak' },
+                    { key: 'sreda', label: 'Sreda' },
+                    { key: 'cetvrtak', label: 'Cetvrtak' },
+                    { key: 'petak', label: 'Petak' },
+                    { key: 'subota', label: 'Subota' },
+                    { key: 'nedelja', label: 'Nedelja' },
+                  ].map((day) => (
+                    <div key={day.key} className="flex items-center gap-3">
+                      <span className="text-sm text-muted-foreground w-24">{day.label}</span>
+                      <input
+                        type="text"
+                        value={radnoVreme[day.key] || ''}
+                        onChange={(e) =>
+                          setRadnoVreme((prev) => ({ ...prev, [day.key]: e.target.value }))
+                        }
+                        placeholder="08:00-16:00 ili Zatvoreno"
+                        className="flex-1 rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Format: 08:00-16:00 ili Zatvoreno
+                </p>
+              </div>
+
               <button
                 onClick={handleSaveAbout}
                 disabled={saving}

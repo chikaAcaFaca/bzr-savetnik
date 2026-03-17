@@ -76,6 +76,15 @@ interface CompanyProfile {
   youtubeUrl: string | null;
   tiktokUrl: string | null;
   linkedinUrl: string | null;
+  // SEO (generated)
+  seoDescription: string | null;
+  seoMetaDescription: string | null;
+  // Images/Maps
+  streetViewUrl: string | null;
+  mapEmbedUrl: string | null;
+  mapLinkUrl: string | null;
+  // Working hours
+  radnoVreme: Record<string, string> | null;
 }
 
 interface SiteDefaults {
@@ -250,6 +259,16 @@ export default function CompanyMiniWebsite() {
   useEffect(() => {
     if (company) {
       document.title = `${company.poslovnoIme} - ${company.opstina || 'Srbija'} | BZR Savetnik`;
+      const descContent = company.seoMetaDescription || `${company.poslovnoIme} - profil firme, kontakt podaci, finansijski izveštaji. MB: ${company.maticniBroj}`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', descContent);
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = 'description';
+        meta.content = descContent;
+        document.head.appendChild(meta);
+      }
     }
   }, [company]);
 
@@ -411,23 +430,101 @@ export default function CompanyMiniWebsite() {
           </div>
         </div>
 
+        {/* Location Map + Working Hours */}
+        {(fullAddress || company.radnoVreme) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {/* Embedded Google Map */}
+            {fullAddress && (
+              <div className="md:col-span-2 rounded-xl overflow-hidden border shadow-sm bg-white">
+                {company.mapEmbedUrl ? (
+                  <iframe
+                    src={company.mapEmbedUrl}
+                    className="w-full h-64 md:h-72"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={`${company.poslovnoIme} - lokacija na mapi`}
+                  />
+                ) : (
+                  <iframe
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(fullAddress + ', Srbija')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                    className="w-full h-64 md:h-72"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title={`${company.poslovnoIme} - lokacija na mapi`}
+                  />
+                )}
+                <div className="px-4 py-3 flex items-center justify-between bg-gray-50/80 border-t">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
+                    <span className="truncate">{fullAddress}</span>
+                  </div>
+                  <a
+                    href={company.mapLinkUrl || `https://maps.google.com/?q=${encodeURIComponent(fullAddress + ', Srbija')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-green-600 hover:text-green-700 font-medium whitespace-nowrap ml-2"
+                  >
+                    Otvori u Google Maps
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Radno vreme */}
+            <div className="rounded-xl border shadow-sm bg-white p-5">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Radno vreme
+              </h3>
+              {company.radnoVreme ? (
+                <WorkingHours hours={company.radnoVreme} />
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-sm text-gray-400 italic">Radno vreme nije postavljeno</div>
+                  {!isClaimed && (
+                    <Link
+                      href={`/registracija?ref=firma&mb=${company.maticniBroj}`}
+                      className="text-xs text-green-600 font-medium hover:underline"
+                    >
+                      Postavite radno vreme &rarr;
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
             {/* O nama */}
             <section className="bg-white rounded-xl border shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">O nama</h2>
-              <p className="text-gray-600 leading-relaxed">
-                {company.kratakOpis || (
-                  `${company.poslovnoIme} je ${company.pravnaForma || 'privredno drustvo'} ` +
-                  `registrovano u Agenciji za privredne registre` +
-                  (company.grad ? `, sa sedistem u gradu ${company.grad}` : company.opstina ? `, sa sedistem u opstini ${company.opstina}` : '') +
-                  (company.sifraDelatnosti ? `. Sifra pretezne delatnosti: ${company.sifraDelatnosti}` : '') +
-                  (godinaOsnivanja ? `. Osnovano ${godinaOsnivanja}. godine` : '') +
-                  (company.brojZaposlenih ? `. Broj zaposlenih: ${company.brojZaposlenih}` : '') +
-                  `.`
-                )}
-              </p>
+              {(company.kratakOpis || company.seoDescription) ? (
+                <p className="text-gray-600 leading-relaxed">
+                  {company.kratakOpis || company.seoDescription}
+                </p>
+              ) : (
+                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
+                  <p className="text-gray-400 text-sm">Ova firma jos uvek nije dodala opis svog poslovanja.</p>
+                  <Link
+                    href={`/registracija?claim=${company.maticniBroj}`}
+                    className="text-green-600 text-sm font-medium hover:underline mt-2 inline-block"
+                  >
+                    Ovo je vasa firma? Dodajte opis &rarr;
+                  </Link>
+                </div>
+              )}
 
               {company.usluge && (
                 <div className="mt-4 pt-4 border-t">
@@ -676,22 +773,60 @@ export default function CompanyMiniWebsite() {
                 )}
               </section>
             ) : !company.registrovan ? (
-              <section className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 shadow-sm p-6 text-center">
-                <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                  <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-green-900 mb-1">Ovo je vasa firma?</h3>
-                <p className="text-sm text-green-700 mb-4">Aktivirajte besplatnu web stranicu i upravljajte vasim profilom</p>
-                <Link
-                  href={`/registracija?ref=firma&mb=${company.maticniBroj}`}
-                  className="block w-full px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                >
-                  Aktivirajte besplatno
-                </Link>
-                <p className="text-xs text-green-600 mt-2">Bez kreditne kartice</p>
-              </section>
+              <>
+                {/* Claim profile CTA */}
+                <section className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl border-2 border-amber-300 shadow-md p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-amber-900">Ovo je vasa firma?</h3>
+                  </div>
+                  <p className="text-sm text-amber-800 mb-1">Preuzmite profil besplatno:</p>
+                  <ul className="text-xs text-amber-700 space-y-1 mb-4 ml-1">
+                    <li className="flex items-center gap-1.5">
+                      <svg className="h-3 w-3 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                      Dodajte logo, opis, kontakt podatke
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <svg className="h-3 w-3 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                      Objavljujte ponude i vesti
+                    </li>
+                    <li className="flex items-center gap-1.5">
+                      <svg className="h-3 w-3 text-amber-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
+                      Galerija slika i verifikacija
+                    </li>
+                  </ul>
+                  <Link
+                    href={`/registracija?ref=firma&mb=${company.maticniBroj}`}
+                    className="block w-full px-4 py-3 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition-colors text-center shadow-sm"
+                  >
+                    Preuzmite profil
+                  </Link>
+                  <p className="text-[11px] text-amber-600 mt-2 text-center">Besplatno. Bez kreditne kartice.</p>
+                </section>
+
+                {/* BZR Status warning */}
+                <section className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-amber-500 text-lg flex-shrink-0">&#9888;</span>
+                    <div>
+                      <p className="font-semibold text-amber-800 text-sm">BZR dokumentacija</p>
+                      <p className="text-amber-700 text-xs mt-1">
+                        Svaki poslodavac je u obavezi da ima Akt o proceni rizika i urednu BZR dokumentaciju.
+                      </p>
+                      <Link
+                        href={`/registracija?ref=bzr&mb=${company.maticniBroj}`}
+                        className="inline-block mt-2 text-xs font-medium text-amber-800 underline hover:text-amber-900"
+                      >
+                        Proverite besplatno &rarr;
+                      </Link>
+                    </div>
+                  </div>
+                </section>
+              </>
             ) : (
               <section className="bg-blue-50 rounded-xl border border-blue-200 shadow-sm p-6 text-center">
                 <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
@@ -765,6 +900,8 @@ export default function CompanyMiniWebsite() {
               <img src="/logo.png" alt="BZR Savetnik" className="h-10 w-10 object-contain" />
               <span className="text-sm text-gray-600">
                 Powered by <Link href="/" className="text-green-600 hover:underline font-medium">BZR Savetnik</Link>
+                {' | '}
+                <a href="https://nket-consulting.com" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:underline">nket-consulting.com</a>
               </span>
             </div>
             {(() => {
@@ -827,6 +964,51 @@ function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function WorkingHours({ hours }: { hours: Record<string, string> }) {
+  const days = [
+    { key: 'ponedeljak', label: 'Ponedeljak', short: 'Pon' },
+    { key: 'utorak', label: 'Utorak', short: 'Uto' },
+    { key: 'sreda', label: 'Sreda', short: 'Sre' },
+    { key: 'cetvrtak', label: 'Cetvrtak', short: 'Cet' },
+    { key: 'petak', label: 'Petak', short: 'Pet' },
+    { key: 'subota', label: 'Subota', short: 'Sub' },
+    { key: 'nedelja', label: 'Nedelja', short: 'Ned' },
+  ];
+
+  const now = new Date();
+  const todayIndex = now.getDay() === 0 ? 6 : now.getDay() - 1;
+
+  return (
+    <div className="space-y-1.5">
+      {days.map((day, index) => {
+        const value = hours[day.key] || 'Zatvoreno';
+        const isToday = index === todayIndex;
+        const isOpen = value !== 'Zatvoreno' && value !== '-';
+
+        return (
+          <div
+            key={day.key}
+            className={`flex items-center justify-between text-sm py-1.5 px-2 rounded-md ${
+              isToday ? 'bg-green-50 border border-green-200' : ''
+            }`}
+          >
+            <span className={`${isToday ? 'font-semibold text-green-800' : 'text-gray-600'}`}>
+              {day.short}
+            </span>
+            <span className={`${
+              isToday
+                ? isOpen ? 'font-semibold text-green-700' : 'font-semibold text-red-600'
+                : isOpen ? 'text-gray-900' : 'text-gray-400'
+            }`}>
+              {value}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
