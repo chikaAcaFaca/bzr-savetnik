@@ -6,5 +6,8 @@ ios/
 functions/lib/
 *.env.local
 .env.local
+# Sve prave env fajlove sa tajnama drži van gita (.env.example je izuzetak — nema tajni)
+.env
+*.env
 sa.json
 .DS_Store
