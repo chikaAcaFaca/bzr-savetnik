@@ -1,0 +1,37 @@
+# Self-host LiveKit + agent worker — Contabo VPS, uvezi u Coolify kao compose servis.
+#
+# ⚠️ OVAJ VPS VEĆ VRTI DRUGE NKNet PROJEKTE (Coolify). Pre deploya, na samom VPS-u:
+#   sudo ss -tulpn | grep -E ':7880|:7881'              # mora biti prazno
+#   sudo ss -ulpn  | grep -E ':(5[0-9]{4}|60000)'        # mora biti prazno
+# Ako nešto sedi u 50000-60000, suzi port_range u livekit.yaml da ga zaobiđeš.
+#
+# network_mode: host je OBAVEZAN za WebRTC (UDP range), ali to znači da Coolify/Traefik
+# NE proxy-uje ovaj servis — firewall pravila moraš postaviti ručno na nivou VPS-a
+# (ufw/iptables), Coolify-jeva zaštita ih ne pokriva.
+#
+# OBAVEZNO na Contabo: otvori UDP 50000-60000 i TCP 7880/7881 i u Contabo Firewall panelu
+# (Customer Control Panel → VPS → Firewall) I unutar servera (ufw/iptables) — Contabo ima
+# oba sloja, blokada na bilo kom nivou tiho ubija WebRTC. TURN preko 3478/5349.
+# Proveri da IP nije iza NAT-a (Customer Panel → VPS → mreža) pre nego što upišeš u livekit.yaml.
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    restart: unless-stopped
+    network_mode: host          # WebRTC traži host networking
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+
+  agent:
+    build: ./agent
+    restart: unless-stopped
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      SONIOX_API_KEY: ${SONIOX_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      FUNCTIONS_BASE: ${FUNCTIONS_BASE}
+      AGENT_SHARED_SECRET: ${AGENT_SHARED_SECRET}
+      IDLE_CUT_SECONDS: "20"
+    network_mode: host

@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+android/
+ios/
+functions/lib/
+*.env.local
+.env.local
+sa.json
+.DS_Store

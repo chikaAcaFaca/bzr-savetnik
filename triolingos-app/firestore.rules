@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function isSelf(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function isOrgAdminOf(orgId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isAdmin()
+        || (resource.data.org != null && isOrgAdminOf(resource.data.org.orgId));
+
+      // Korisnik sme da menja SAMO profil — NIKAD subscription/tutor/org/bzr/cv
+      allow update: if isSelf(uid)
+        && !request.resource.data.diff(resource.data)
+             .affectedKeys().hasAny(['subscription', 'tutor', 'org', 'bzr', 'cv']);
+      allow create: if isSelf(uid)
+        && !request.resource.data.keys().hasAny(['subscription', 'tutor', 'org', 'bzr', 'cv']);
+      allow write: if isAdmin();
+
+      // Napredak: ISKLJUČIVO server (Admin SDK zaobilazi rules).
+      // Prvi radnik koji otvori DevTools ne sme da "završi" kurs —
+      // a za BZR sertifikat je to pravni problem, ne samo poslovni.
+      match /progress/{lessonId} {
+        allow read: if isSelf(uid) || isAdmin()
+          || (get(/databases/$(database)/documents/users/$(uid)).data.org != null
+              && isOrgAdminOf(get(/databases/$(database)/documents/users/$(uid)).data.org.orgId));
+        allow write: if false;
+      }
+    }
+
+    match /orgs/{orgId} {
+      allow read: if isOrgAdminOf(orgId) || isAdmin();
+      allow write: if isAdmin();
+      match /members/{memberId} {
+        allow read: if isOrgAdminOf(orgId) || isAdmin() || isSelf(memberId);
+        allow write: if isAdmin();
+      }
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Banka pitanja NIJE čitljiva sa klijenta — test se servira i ocenjuje server-side.
+    match /questionBank/{lessonId}/questions/{qid} {
+      allow read, write: if isAdmin();
+    }
+
+    match /ttsCache/{hash} {
+      allow read: if request.auth != null;
+      allow write: if false;   // samo Cloud Function
+    }
+
+    match /tutorSessions/{sid} {
+      allow read: if isAdmin()
+        || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow write: if false;   // samo agent worker preko Admin SDK
+    }
+
+    match /config/{doc} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    match /auditLog/{entry} {
+      allow read: if isAdmin();
+      allow write: if false;   // samo server
+    }
+  }
+}

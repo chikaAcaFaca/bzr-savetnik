@@ -1,0 +1,51 @@
+{
+  "_komentar": "Seed za Firestore. Ucitava se sa: node scripts/seed.mjs. Reci za slovo Š su UZORAK (10 od 50) — pun sadržaj se piše u Fazi 2. BZR fraze su iz plana §7.",
+
+  "N1": { "type": "numbers", "order": 1, "title": "Brojevi 0–10", "range": [0, 10] },
+  "N2": { "type": "numbers", "order": 2, "title": "Brojevi 11–20", "range": [11, 20] },
+  "N3": { "type": "numbers", "order": 3, "title": "Desetice do 100", "range": [20, 100] },
+  "N4": { "type": "numbers", "order": 4, "title": "Brojevi 21–99", "range": [21, 99] },
+  "N5": { "type": "numbers", "order": 5, "title": "Stotine i hiljade", "range": [100, 999999] },
+  "N6": { "type": "numbers", "order": 6, "title": "Milioni i milijarde", "range": [1000000, 999999999] },
+
+  "L-S-kvaka": {
+    "type": "letter", "order": 7, "title": "Slovo Š", "letter": "Š",
+    "words": [
+      { "sr": "šef", "en": "boss", "bn": "বস" },
+      { "sr": "šta", "en": "what", "bn": "কী" },
+      { "sr": "šaka", "en": "fist/hand", "bn": "মুঠি" },
+      { "sr": "šator", "en": "tent", "bn": "তাঁবু" },
+      { "sr": "šećer", "en": "sugar", "bn": "চিনি" },
+      { "sr": "šešir", "en": "hat", "bn": "টুপি" },
+      { "sr": "škola", "en": "school", "bn": "স্কুল" },
+      { "sr": "špediter", "en": "freight forwarder", "bn": "মালবাহক" },
+      { "sr": "švaler", "en": "(colloq.)", "bn": "-" },
+      { "sr": "šrafciger", "en": "screwdriver", "bn": "স্ক্রু ড্রাইভার" }
+    ],
+    "situations": [
+      { "sr": "Šefe, gde da stavim ovo?", "en": "Boss, where should I put this?", "bn": "বস, এটা কোথায় রাখব?" },
+      { "sr": "Šta treba da uradim?", "en": "What should I do?", "bn": "আমার কী করা উচিত?" },
+      { "sr": "Dodaj mi šrafciger.", "en": "Hand me the screwdriver.", "bn": "স্ক্রু ড্রাইভারটা দাও।" }
+    ]
+  },
+
+  "BZR-osnove": {
+    "type": "bzr", "order": 0, "title": "Bezbednost na radu — OSNOVE (besplatno)",
+    "words": [
+      { "sr": "Pazi!", "en": "Watch out!", "bn": "সাবধান!" },
+      { "sr": "Stani!", "en": "Stop!", "bn": "থামো!" },
+      { "sr": "Ne diraj!", "en": "Don't touch!", "bn": "স্পর্শ করো না!" },
+      { "sr": "Opasnost", "en": "Danger", "bn": "বিপদ" },
+      { "sr": "kaciga", "en": "helmet", "bn": "হেলমেট" },
+      { "sr": "rukavice", "en": "gloves", "bn": "দস্তানা" },
+      { "sr": "zaštitne naočare", "en": "safety glasses", "bn": "নিরাপত্তা চশমা" },
+      { "sr": "izlaz", "en": "exit", "bn": "প্রস্থান" }
+    ],
+    "situations": [
+      { "sr": "Povredio sam se.", "en": "I got injured.", "bn": "আমি আহত হয়েছি।" },
+      { "sr": "Zovi hitnu pomoć! 194!", "en": "Call an ambulance! 194!", "bn": "অ্যাম্বুলেন্স ডাকো! ১৯৪!" },
+      { "sr": "Gde je izlaz u slučaju požara?", "en": "Where is the fire exit?", "bn": "আগুন লাগলে বের হওয়ার পথ কোথায়?" },
+      { "sr": "Moram da prijavim povredu šefu.", "en": "I must report the injury to the boss.", "bn": "আমাকে বসকে আঘাতের কথা জানাতে হবে।" }
+    ]
+  }
+}

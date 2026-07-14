@@ -1,0 +1,137 @@
+/* Triolingos dizajn sistem — tokeni iz PLAN-v2 §2 */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+Bengali:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap');
+
+:root {
+  --c-primary: #C2410C;      /* terakota — CTA, brand */
+  --c-primary-dark: #9A3412;
+  --c-teal: #0F766E;         /* napredak, uspeh, tutor */
+  --c-saffron: #F59E0B;      /* highlight, bonus sati */
+  --c-text: #1C1917;         /* warm black */
+  --c-text-soft: #57534E;
+  --c-bg: #FAFAF9;           /* warm off-white */
+  --c-surface: #FFFFFF;
+  --c-error: #DC2626;        /* ISKLJUČIVO greške */
+  --c-success: #059669;
+  --c-border: #E7E5E4;
+
+  --font-ui: 'Inter', 'Noto Sans Bengali', 'Noto Sans Devanagari', system-ui, sans-serif;
+
+  --radius: 14px;
+  --radius-lg: 22px;
+  --shadow: 0 1px 3px rgb(28 25 23 / 0.08), 0 4px 14px rgb(28 25 23 / 0.06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-ui);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 17px;                 /* jeftini Android, umoran radnik — čitljivo */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Signature: BIG WORD kartica ----------
+   Reč koja se uči dominira ekranom. Audio je primaran, tekst sekundaran. */
+.word-card {
+  background: var(--c-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 40px 24px 28px;
+  text-align: center;
+}
+.word-card .sr {
+  font-size: clamp(2.6rem, 12vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--c-text);
+  margin: 0;
+}
+.word-card .native {
+  font-size: 1.25rem;
+  color: var(--c-text-soft);
+  margin-top: 6px;
+}
+.word-card .focus-letter { color: var(--c-primary); }
+
+/* ---------- Audio dugmad ---------- */
+.audio-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  font: inherit; font-weight: 600;
+  padding: 14px 22px; margin: 6px;
+  background: var(--c-primary); color: #fff;
+  min-height: 52px;                /* debeli prsti, radne rukavice */
+}
+.audio-btn.slow { background: var(--c-teal); }
+.audio-btn:active { transform: scale(0.97); }
+
+/* ---------- Kviz ---------- */
+.quiz-option {
+  display: block; width: 100%;
+  background: var(--c-surface);
+  border: 2px solid var(--c-border);
+  border-radius: var(--radius);
+  padding: 18px; margin: 10px 0;
+  font: inherit; font-size: 1.15rem; font-weight: 600;
+  text-align: left; cursor: pointer;
+  min-height: 60px;
+}
+.quiz-option[data-state='correct'] { border-color: var(--c-success); background: #ECFDF5; }
+.quiz-option[data-state='wrong'] { border-color: var(--c-error); background: #FEF2F2; }
+.quiz-option:focus-visible { outline: 3px solid var(--c-saffron); outline-offset: 2px; }
+
+/* ---------- Napredak ---------- */
+.progress-track { height: 10px; background: var(--c-border); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--c-teal); border-radius: 999px; transition: width .3s; }
+
+/* ---------- Lekcija mapa ---------- */
+.lesson-tile {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--c-surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 16px; margin: 10px 0;
+  text-decoration: none; color: inherit;
+}
+.lesson-tile[data-locked='true'] { opacity: 0.45; pointer-events: none; }
+.lesson-tile .badge {
+  width: 52px; height: 52px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 14px; font-weight: 800; font-size: 1.4rem;
+  background: #FFF7ED; color: var(--c-primary);
+}
+.lesson-tile[data-done='true'] .badge { background: #ECFDF5; color: var(--c-success); }
+
+/* ---------- Tutor ---------- */
+.tutor-orb {
+  width: 140px; height: 140px; border-radius: 50%;
+  margin: 40px auto; display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, #14B8A6, var(--c-teal));
+  color: #fff; font-weight: 800;
+  box-shadow: 0 0 0 0 rgb(15 118 110 / .4);
+}
+.tutor-orb[data-live='true'] { animation: pulse 1.6s infinite; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgb(15 118 110 / .35); }
+  100% { box-shadow: 0 0 0 26px rgb(15 118 110 / 0); }
+}
+.quota-pill {
+  display: inline-block; padding: 6px 14px; border-radius: 999px;
+  background: #FFFBEB; color: #92400E; font-weight: 600; font-size: .95rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutor-orb[data-live='true'] { animation: none; }
+  * { transition: none !important; }
+}
+
+.container { max-width: 560px; margin: 0 auto; padding: 16px; }
+.btn-primary {
+  display: block; width: 100%; border: 0; cursor: pointer;
+  background: var(--c-primary); color: #fff;
+  font: inherit; font-weight: 800; font-size: 1.1rem;
+  padding: 16px; border-radius: var(--radius); min-height: 56px;
+}
+.btn-primary:disabled { background: var(--c-border); color: var(--c-text-soft); }
+h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; }
