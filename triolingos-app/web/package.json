@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start",
     "test:numbers": "node src/lib/numbers/numberToSerbian.test.mjs",
-    "cap:sync": "next build && npx cap sync android",
+    "cap:sync": "CAPACITOR_BUILD=1 next build && npx cap sync android",
     "cap:android": "npx cap open android"
   },
   "dependencies": {

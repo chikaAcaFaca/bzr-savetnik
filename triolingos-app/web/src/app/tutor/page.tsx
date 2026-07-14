@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Room, RoomEvent, Track } from 'livekit-client';
 import { callTutorToken } from '@/lib/firebase';
@@ -7,6 +7,15 @@ import { callTutorToken } from '@/lib/firebase';
 const LIVEKIT_URL = process.env.NEXT_PUBLIC_LIVEKIT_URL!;   // wss://livekit.nknet-consulting.com
 
 export default function TutorPage() {
+  // useSearchParams mora biti u Suspense granici (Next.js CSR bailout).
+  return (
+    <Suspense fallback={<main className="container" style={{ textAlign: 'center' }}><h1>AI Tutor</h1></main>}>
+      <TutorInner />
+    </Suspense>
+  );
+}
+
+function TutorInner() {
   const lessonId = useSearchParams().get('lesson') ?? '';
   const [state, setState] = useState<'idle' | 'connecting' | 'live' | 'ended'>('idle');
   const [minutesLeft, setMinutesLeft] = useState<number | null>(null);
