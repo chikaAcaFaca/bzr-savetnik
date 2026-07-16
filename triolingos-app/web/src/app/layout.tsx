@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
+import { LangPrefProvider } from '@/lib/LangPref';
 
 export const metadata: Metadata = {
   title: 'Triolingos — Nauči srpski',
@@ -15,7 +16,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="sr">
-      <body>{children}</body>
+      <body><LangPrefProvider>{children}</LangPrefProvider></body>
     </html>
   );
 }
