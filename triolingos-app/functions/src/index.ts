@@ -33,7 +33,11 @@ export const freemiusWebhook = onRequest(
       .createHmac('sha256', FREEMIUS_SECRET.value())
       .update(JSON.stringify(req.body))
       .digest('hex');
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+    // timingSafeEqual baca na različitu dužinu bafera — guard pre poređenja,
+    // inače potpis koji fali/pogrešne dužine daje 500 umesto čistog 401.
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
       res.status(401).send('bad signature');
       return;
     }

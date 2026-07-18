@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { useLangPref } from '@/lib/LangPref';
 
 type Lesson = { id: string; type: string; order: number; title: string; letter?: string };
 type Progress = Record<string, { status: string; bestScore?: number }>;
@@ -13,6 +14,7 @@ export default function Home() {
   const [progress, setProgress] = useState<Progress>({});
   const [tutorLeft, setTutorLeft] = useState<number | null>(null);
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const { pref, langs, setPref } = useLangPref();
 
   useEffect(() => onAuthStateChanged(auth, async (u) => {
     setAuthed(!!u);
@@ -45,13 +47,19 @@ export default function Home() {
 
   return (
     <main className="container">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <h1>Triolingos</h1>
-        {tutorLeft !== null && (
-          <span className="quota-pill">
-            Tutor: {Math.floor(tutorLeft / 60)}h {tutorLeft % 60}min
-          </span>
-        )}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {tutorLeft !== null && (
+            <span className="quota-pill">
+              Tutor: {Math.floor(tutorLeft / 60)}h {tutorLeft % 60}min
+            </span>
+          )}
+          <button className="lang-toggle" title="Koliko jezika prikazati · How many languages"
+            onClick={() => setPref({ langCount: (pref.langCount % 3) + 1 })}>
+            🌐 {langs.map((l) => l.toUpperCase()).join('·')}
+          </button>
+        </div>
       </header>
 
       {tiles.map((l) => (

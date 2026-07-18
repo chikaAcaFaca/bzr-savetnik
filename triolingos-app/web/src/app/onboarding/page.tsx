@@ -3,19 +3,16 @@ import { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '@/lib/firebase';
+import { Lang, LANGS, NATIVE_LANGS, resolveLangs, writeLangPref } from '@/lib/i18n';
+import { OCCUPATIONS } from '@/lib/content/occupations';
 
-const LANGS = [
-  { code: 'bn', label: 'বাংলা', name: 'Bangla' },
-  { code: 'hi', label: 'हिन्दी', name: 'Hindi' },
-  { code: 'ne', label: 'नेपाली', name: 'Nepali' },
-  { code: 'en', label: 'English', name: 'English' },
-];
-const TRACKS = ['trgovac', 'konobar', 'kuvar', 'pekar', 'kuhinja-pomoć',
-  'magacioner', 'magacin-pomoć', 'vozač', 'građevina'];
+// Primer za pregled "koliko jezira vidiš odjednom"
+const PREVIEW = { sr: 'Dobar dan', en: 'Good day', bn: 'শুভ দিন', hi: 'नमस्ते', ne: 'नमस्ते' } as const;
 
 export default function Onboarding() {
-  const [step, setStep] = useState<'auth' | 'lang' | 'track' | 'phone'>('auth');
-  const [lang, setLang] = useState('');
+  const [step, setStep] = useState<'auth' | 'lang' | 'count' | 'track' | 'phone'>('auth');
+  const [nativeLang, setNativeLang] = useState<Lang>('en');
+  const [langCount, setLangCount] = useState(3);
   const [track, setTrack] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -26,11 +23,12 @@ export default function Onboarding() {
 
   async function finish() {
     const u = auth.currentUser!;
+    writeLangPref({ nativeLang, langCount });
     await setDoc(doc(db, 'users', u.uid), {
       profile: {
         firstName: u.displayName?.split(' ')[0] ?? '',
         lastName: u.displayName?.split(' ').slice(1).join(' ') ?? '',
-        email: u.email, phone, nativeLang: lang, track,
+        email: u.email, phone, nativeLang, langCount, track,
       },
     }, { merge: true });
     location.href = '/';
@@ -40,41 +38,81 @@ export default function Onboarding() {
     <main className="container">
       {step === 'auth' && (
         <>
-          <h1>Dobrodošao / স্বাগতম / Welcome</h1>
-          <p style={{ color: 'var(--c-text-soft)' }}>Nauči srpski za posao i život u Srbiji.</p>
-          <button className="btn-primary" onClick={google}>Nastavi sa Google nalogom</button>
+          <h1>Dobrodošao · স্বাগতম · स्वागत · Welcome</h1>
+          <p style={{ color: 'var(--c-text-soft)' }}>
+            Nauči srpski za posao i život u Srbiji · Learn Serbian for work and life in Serbia
+          </p>
+          <button className="btn-primary" onClick={google}>Nastavi sa Google nalogom · Continue with Google</button>
         </>
       )}
+
       {step === 'lang' && (
         <>
-          <h1>Tvoj jezik / Your language</h1>
-          {LANGS.map((l) => (
-            <button key={l.code} className="quiz-option"
-              onClick={() => { setLang(l.code); setStep('track'); }}>
-              {l.label} <span style={{ color: 'var(--c-text-soft)' }}>({l.name})</span>
+          <h1>Tvoj maternji jezik · Your language</h1>
+          {NATIVE_LANGS.map((code) => (
+            <button key={code} className="quiz-option"
+              onClick={() => { setNativeLang(code); setStep('count'); }}>
+              {LANGS[code].label} <span style={{ color: 'var(--c-text-soft)' }}>({LANGS[code].name})</span>
             </button>
           ))}
         </>
       )}
-      {step === 'track' && (
+
+      {step === 'count' && (
         <>
-          <h1>Tvoj posao / Your job</h1>
-          {TRACKS.map((t) => (
-            <button key={t} className="quiz-option"
-              onClick={() => { setTrack(t); setStep('phone'); }}>{t}</button>
-          ))}
+          <h1>Koliko jezika da prikažemo? · How many languages?</h1>
+          <p style={{ color: 'var(--c-text-soft)' }}>Srpski se uvek uči — ostali su ti pomoć. Kasnije možeš promeniti.</p>
+          {[1, 2, 3].map((c) => {
+            const langs = resolveLangs(nativeLang, c);
+            return (
+              <button key={c} className="quiz-option"
+                onClick={() => { setLangCount(c); setStep('track'); }}>
+                <strong>{c} {c === 1 ? 'jezik' : 'jezika'}</strong>
+                <span style={{ display: 'block', marginTop: 6, color: 'var(--c-text-soft)', fontSize: '.95rem' }}>
+                  {langs.map((l) => PREVIEW[l]).join('  ·  ')}
+                </span>
+              </button>
+            );
+          })}
         </>
       )}
+
+      {step === 'track' && (
+        <>
+          <h1>Tvoj posao · Your job</h1>
+          {OCCUPATIONS.map((o) => {
+            const langs = resolveLangs(nativeLang, langCount);
+            return (
+              <button key={o.code} className="quiz-option"
+                onClick={() => { setTrack(o.code); setStep('phone'); }}>
+                {langs.map((l, i) => (
+                  <span key={l} style={{
+                    display: 'block',
+                    fontWeight: i === 0 ? 700 : 400,
+                    color: i === 0 ? 'var(--c-text)' : 'var(--c-text-soft)',
+                    fontSize: i === 0 ? '1.15rem' : '.95rem',
+                  }}>{o[l]}</span>
+                ))}
+              </button>
+            );
+          })}
+        </>
+      )}
+
       {step === 'phone' && (
         <>
-          <h1>Broj telefona</h1>
-          <p style={{ color: 'var(--c-text-soft)' }}>Obavezan — poslodavac te kontaktira ovim brojem.</p>
+          <h1>Broj telefona · Phone number</h1>
+          <p style={{ color: 'var(--c-text-soft)' }}>
+            Obavezan — poslodavac te kontaktira ovim brojem · Required — your employer contacts you here.
+          </p>
           <input value={phone} onChange={(e) => setPhone(e.target.value)}
             placeholder="+381 6x xxx xxxx" inputMode="tel"
-            style={{ width: '100%', padding: 16, fontSize: '1.1rem',
-              borderRadius: 'var(--radius)', border: '2px solid var(--c-border)' }} />
+            style={{
+              width: '100%', padding: 16, fontSize: '1.1rem',
+              borderRadius: 'var(--radius)', border: '2px solid var(--c-border)',
+            }} />
           <button className="btn-primary" style={{ marginTop: 16 }}
-            disabled={phone.length < 9} onClick={finish}>Završi</button>
+            disabled={phone.length < 9} onClick={finish}>Završi · Finish</button>
         </>
       )}
     </main>

@@ -1,0 +1,9 @@
+{
+  "name": "triolingos-seed",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tts": "node --env-file=.env generate-tts.mjs"
+  },
+  "dependencies": { "firebase-admin": "^13.0.0" }
+}
