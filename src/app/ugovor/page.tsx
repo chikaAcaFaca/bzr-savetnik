@@ -201,7 +201,7 @@ export default function ContractPage() {
             <h2 className="text-base font-bold text-gray-900">1. Predmet ugovora</h2>
             <p>
               Ovim ugovorom se uredjuju uslovi koriscenja BZR Savetnik platforme (u daljem tekstu: Platforma)
-              koju pruza NKNet Consulting DOO, Karadjordeva 18a, 26101 Pancevo, PIB: 115190346, MB: 22125338
+              koju pruza NKNet Consulting DOO, Svetozara Miletica 104/18, 26000 Pancevo, PIB: 115190346, MB: 22125338
               (u daljem tekstu: Pruzalac usluge).
             </p>
             <p>

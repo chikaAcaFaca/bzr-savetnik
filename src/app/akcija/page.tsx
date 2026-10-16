@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { FileCheck, ClipboardList, BellRing, Bot, ShieldCheck, Signature, Phone, MapPin, Building2 } from 'lucide-react';
+import { FileCheck, ClipboardList, BellRing, Bot, ShieldCheck, Signature, Phone, MapPin, Building2, Mail } from 'lucide-react';
 import { PrijavaForma } from './prijava-forma';
 
 export const metadata: Metadata = {
@@ -191,12 +191,19 @@ export default function AkcijaPage() {
 
       {/* Kontakt */}
       <section className="py-16">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-3 gap-6 text-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-sm">
           <div className="flex gap-3">
             <Phone className="h-5 w-5 text-primary shrink-0" />
             <div>
               <div className="font-semibold">Telefon</div>
               <a href="tel:+381641258686" className="text-muted-foreground hover:text-foreground">064 125 86 86</a>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Mail className="h-5 w-5 text-primary shrink-0" />
+            <div>
+              <div className="font-semibold">Email</div>
+              <a href="mailto:office@nknet-consulting.com" className="text-muted-foreground hover:text-foreground break-all">office@nknet-consulting.com</a>
             </div>
           </div>
           <div className="flex gap-3">
@@ -210,7 +217,7 @@ export default function AkcijaPage() {
             <MapPin className="h-5 w-5 text-primary shrink-0" />
             <div>
               <div className="font-semibold">Adresa</div>
-              <div className="text-muted-foreground">Karadjordjeva 18a, 26101 Pancevo</div>
+              <div className="text-muted-foreground">Svetozara Miletica 104/18, 26000 Pancevo</div>
             </div>
           </div>
         </div>
