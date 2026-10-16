@@ -222,8 +222,9 @@ export default function ContractPage() {
               cenovnikom koji je dostupan na stranici /cene.
             </p>
             <p>
-              <strong>Godisnja pretplata:</strong> Korisnik koji odabere godisnje placanje placa 10 mesecnih
-              pretplata i koristi Platformu 12 meseci (2 meseca besplatno).
+              <strong>Godisnja pretplata:</strong> Za firme do 20 zaposlenih mesecna pretplata iznosi 990 RSD,
+              a godisnja 8.990 RSD. Za firme sa vise od 20 zaposlenih Korisnik koji odabere godisnje placanje
+              placa 10 mesecnih pretplata i koristi Platformu 12 meseci (2 meseca besplatno).
             </p>
             <p>
               Placanje se vrsi uplatom na racun Pruzaoca usluge ili putem IPS QR koda. Faktura se izdaje

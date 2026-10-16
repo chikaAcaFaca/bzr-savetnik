@@ -15,10 +15,10 @@ import QRCode from 'qrcode';
 
 // Pricing tiers matching backend PRICING_TIERS
 const PRICING_TIERS: Record<string, { label: string; monthlyRsd: number; annualRsd: number }> = {
-  tier_1: { label: '1 zaposlen', monthlyRsd: 990, annualRsd: 9900 },
-  tier_5: { label: 'Do 5 zaposlenih', monthlyRsd: 1990, annualRsd: 19900 },
-  tier_10: { label: 'Do 10 zaposlenih', monthlyRsd: 3990, annualRsd: 39900 },
-  tier_20: { label: 'Do 20 zaposlenih', monthlyRsd: 6990, annualRsd: 69900 },
+  tier_1: { label: 'Do 20 zaposlenih', monthlyRsd: 990, annualRsd: 8990 },
+  tier_5: { label: 'Do 20 zaposlenih', monthlyRsd: 990, annualRsd: 8990 },
+  tier_10: { label: 'Do 20 zaposlenih', monthlyRsd: 990, annualRsd: 8990 },
+  tier_20: { label: 'Do 20 zaposlenih', monthlyRsd: 990, annualRsd: 8990 },
   tier_50: { label: 'Do 50 zaposlenih', monthlyRsd: 9990, annualRsd: 99900 },
   tier_50plus: { label: '51+ zaposlenih', monthlyRsd: 14990, annualRsd: 149900 },
 };

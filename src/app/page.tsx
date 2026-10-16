@@ -287,18 +287,19 @@ export default function HomePage() {
             Placate prema broju zaposlenih. Agencije besplatno.
           </p>
           <div className="mt-10 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="rounded-lg border bg-card p-6">
-              <h3 className="font-semibold">1 zaposlen</h3>
-              <div className="mt-4 text-3xl font-bold">990 <span className="text-base font-normal text-muted-foreground">RSD/mes</span></div>
-              <p className="text-sm text-muted-foreground mt-2">Preduzetnici</p>
-            </div>
             <div className="rounded-lg border-2 border-primary bg-card p-6 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full">
-                Najpopularnije
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full whitespace-nowrap">
+                Prvi mesec besplatno
               </div>
               <h3 className="font-semibold">Do 20 zaposlenih</h3>
-              <div className="mt-4 text-3xl font-bold">6.990 <span className="text-base font-normal text-muted-foreground">RSD/mes</span></div>
-              <p className="text-sm text-muted-foreground mt-2">Mala i srednja preduzeca</p>
+              <div className="mt-4 text-3xl font-bold">990 <span className="text-base font-normal text-muted-foreground">RSD/mes</span></div>
+              <p className="text-sm text-muted-foreground mt-2">ili 8.990 RSD godisnje</p>
+              <Link href="/akcija" className="inline-flex mt-3 text-sm font-medium text-primary hover:underline">Pogledajte ponudu &rarr;</Link>
+            </div>
+            <div className="rounded-lg border bg-card p-6">
+              <h3 className="font-semibold">Do 50 zaposlenih</h3>
+              <div className="mt-4 text-3xl font-bold">9.990 <span className="text-base font-normal text-muted-foreground">RSD/mes</span></div>
+              <p className="text-sm text-muted-foreground mt-2">Srednja preduzeca</p>
             </div>
             <div className="rounded-lg border bg-card p-6">
               <h3 className="font-semibold">51+ zaposlenih</h3>

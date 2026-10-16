@@ -11,12 +11,9 @@ export const metadata: Metadata = {
 };
 
 const tiers = [
-  { name: '1 zaposlen', price: '990', annual: '9.900', employees: '1', tier: 'tier_1' },
-  { name: 'Do 5 zaposlenih', price: '1.990', annual: '19.900', employees: '2-5', tier: 'tier_5' },
-  { name: 'Do 10 zaposlenih', price: '3.990', annual: '39.900', employees: '6-10', tier: 'tier_10' },
-  { name: 'Do 20 zaposlenih', price: '6.990', annual: '69.900', employees: '11-20', tier: 'tier_20', popular: true },
-  { name: 'Do 50 zaposlenih', price: '9.990', annual: '99.900', employees: '21-50', tier: 'tier_50' },
-  { name: '51+ zaposlenih', price: '14.990', annual: '149.900', employees: '51+', tier: 'tier_50plus' },
+  { name: 'Do 20 zaposlenih', price: '990', annual: '8.990', employees: '1-20', tier: 'tier_20', popular: true, saving: 'Usteda 2.890 RSD godisnje' },
+  { name: 'Do 50 zaposlenih', price: '9.990', annual: '99.900', employees: '21-50', tier: 'tier_50', saving: 'Usteda 2 meseca!' },
+  { name: '51+ zaposlenih', price: '14.990', annual: '149.900', employees: '51+', tier: 'tier_50plus', saving: 'Usteda 2 meseca!' },
 ];
 
 export default function PricingPage() {
@@ -48,6 +45,9 @@ export default function PricingPage() {
             Agencije koriste platformu besplatno.
             Prvih 30 dana besplatno za firme.
           </p>
+          <Link href="/akcija" className="inline-flex mt-4 text-sm font-medium text-primary hover:underline">
+            Firme do 20 zaposlenih: prvi mesec besplatno, zatim 990 RSD mesecno &rarr;
+          </Link>
         </div>
 
         {/* Agency: FREE */}
@@ -69,7 +69,7 @@ export default function PricingPage() {
 
         {/* Per-Company Tiers */}
         <h2 className="text-2xl font-bold text-center mb-8">Cene za firme (prema broju zaposlenih)</h2>
-        <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {tiers.map((tier) => (
             <div
               key={tier.name}
@@ -91,7 +91,7 @@ export default function PricingPage() {
               <p className="text-xs text-muted-foreground">mesecno</p>
               <div className="mt-3 pt-3 border-t">
                 <p className="text-xs text-muted-foreground">Godisnje: {tier.annual} RSD</p>
-                <p className="text-xs text-green-600 font-medium">Usteda 2 meseca!</p>
+                <p className="text-xs text-green-600 font-medium">{tier.saving}</p>
               </div>
             </div>
           ))}

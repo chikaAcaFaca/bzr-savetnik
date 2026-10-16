@@ -7,11 +7,9 @@ import { ArrowLeft } from 'lucide-react';
 import { getIdToken } from '@/lib/firebase';
 
 const PRICING_TIERS = [
-  { tier: 'tier_5', maxEmployees: 5, price: '1.990', label: 'Do 5 zaposlenih' },
-  { tier: 'tier_10', maxEmployees: 10, price: '2.490', label: 'Do 10 zaposlenih' },
-  { tier: 'tier_20', maxEmployees: 20, price: '6.990', label: 'Do 20 zaposlenih' },
-  { tier: 'tier_50', maxEmployees: 50, price: '12.990', label: 'Do 50 zaposlenih' },
-  { tier: 'tier_50plus', maxEmployees: Infinity, price: '19.990', label: '50+ zaposlenih' },
+  { tier: 'tier_20', maxEmployees: 20, price: '990', label: 'Do 20 zaposlenih' },
+  { tier: 'tier_50', maxEmployees: 50, price: '9.990', label: 'Do 50 zaposlenih' },
+  { tier: 'tier_50plus', maxEmployees: Infinity, price: '14.990', label: '51+ zaposlenih' },
 ];
 
 function getPricingTier(employeeCount: number) {
